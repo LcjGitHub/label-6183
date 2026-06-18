@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
   Alert,
@@ -10,8 +10,10 @@ import {
   Loader,
   Modal,
   Select,
+  SegmentedControl,
   Stack,
   Text,
+  Timeline,
   TextInput,
   Textarea,
   Title,
@@ -35,21 +37,33 @@ const WEATHER_COLOR_MAP: Record<string, string> = {
   '雪天': 'cyan',
 };
 
+const WEATHER_DOT_MAP: Record<string, string> = {
+  '晴天': 'yellow',
+  '阴天': 'gray',
+  '雨天': 'blue',
+  '雪天': 'cyan',
+};
+
 /** 投喂记录详情页 */
 export function FeedingDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const recordId = Number(id);
   const {
+    records,
     currentRecord,
+    listLoading,
     detailLoading,
     error,
+    fetchRecords,
     fetchRecord,
     updateRecord,
     deleteRecord,
     clearError,
   } = useFeedingStore();
 
+  const [detailFetched, setDetailFetched] = useState(false);
+  const [timelineScope, setTimelineScope] = useState<'location' | 'all'>('location');
   const [editOpened, { open: openEdit, close: closeEdit }] = useDisclosure(false);
   const [form, setForm] = useState({
     feeding_date: new Date(),
@@ -62,8 +76,17 @@ export function FeedingDetailPage() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
+    setDetailFetched(false);
     if (recordId) fetchRecord(recordId);
   }, [recordId, fetchRecord]);
+
+  useEffect(() => {
+    fetchRecords();
+  }, [fetchRecords]);
+
+  useEffect(() => {
+    if (!detailLoading) setDetailFetched(true);
+  }, [detailLoading]);
 
   useEffect(() => {
     if (currentRecord) {
@@ -77,6 +100,15 @@ export function FeedingDetailPage() {
       });
     }
   }, [currentRecord]);
+
+  const timelineRecords = useMemo(() => {
+    const base = timelineScope === 'location' && currentRecord
+      ? records.filter((r) => r.location === currentRecord.location)
+      : records;
+    return [...base].sort(
+      (a, b) => b.feeding_date.localeCompare(a.feeding_date) || b.id - a.id
+    );
+  }, [records, timelineScope, currentRecord]);
 
   const handleUpdate = async () => {
     setSubmitting(true);
@@ -101,7 +133,7 @@ export function FeedingDetailPage() {
     navigate('/');
   };
 
-  if (detailLoading) {
+  if (detailLoading || listLoading) {
     return (
       <Group justify="center" py="xl">
         <Loader />
@@ -109,7 +141,7 @@ export function FeedingDetailPage() {
     );
   }
 
-  if (!currentRecord) {
+  if (detailFetched && !currentRecord) {
     return (
       <Stack>
         <Anchor component={Link} to="/">
@@ -118,6 +150,10 @@ export function FeedingDetailPage() {
         <Text c="dimmed">投喂记录不存在或已被删除</Text>
       </Stack>
     );
+  }
+
+  if (!currentRecord) {
+    return null;
   }
 
   return (
@@ -201,6 +237,103 @@ export function FeedingDetailPage() {
             </Text>
           )}
         </Stack>
+      </Card>
+
+      <Card shadow="sm" padding="lg" radius="md" withBorder>
+        <Group justify="space-between" mb="md">
+          <Title order={3}>投喂时间线</Title>
+          <SegmentedControl
+            size="sm"
+            value={timelineScope}
+            onChange={(v) => setTimelineScope(v as 'location' | 'all')}
+            data={[
+              { value: 'location', label: '同地点' },
+              { value: 'all', label: '全部' },
+            ]}
+          />
+        </Group>
+        {timelineRecords.length === 0 ? (
+          <Text c="dimmed" size="sm">
+            暂无记录
+          </Text>
+        ) : (
+          <Timeline active={timelineRecords.findIndex((r) => r.id === currentRecord.id)} bulletSize={18} lineWidth={2}>
+            {timelineRecords.map((r) => {
+              const isCurrent = r.id === currentRecord.id;
+              return (
+                <Timeline.Item
+                  key={r.id}
+                  bullet={isCurrent ? '📍' : (r.weather ? null : undefined)}
+                  color={r.weather ? WEATHER_DOT_MAP[r.weather] || 'gray' : 'gray'}
+                  title={
+                    <Group gap="xs" align="center">
+                      {isCurrent ? (
+                        <Text fw={700} c="orange" size="sm">
+                          {r.feeding_date}
+                        </Text>
+                      ) : (
+                        <Text
+                          component={Link}
+                          to={`/feeding/${r.id}`}
+                          fw={500}
+                          size="sm"
+                          style={{ textDecoration: 'none' }}
+                        >
+                          {r.feeding_date}
+                        </Text>
+                      )}
+                      {r.weather && (
+                        <Badge
+                          variant="light"
+                          color={WEATHER_COLOR_MAP[r.weather] || 'gray'}
+                          size="xs"
+                        >
+                          {r.weather}
+                        </Badge>
+                      )}
+                      {isCurrent && (
+                        <Badge color="orange" size="xs">
+                          当前
+                        </Badge>
+                      )}
+                    </Group>
+                  }
+                >
+                  <Card withBorder padding="sm" radius="sm" variant={isCurrent ? 'filled' : 'light'} color={isCurrent ? 'orange' : 'gray'}>
+                    <Stack gap={2}>
+                      <Group>
+                        <Text size="xs" c={isCurrent ? 'white' : 'dimmed'} w={60}>
+                          地点
+                        </Text>
+                        <Text size="sm" c={isCurrent ? 'white' : 'inherit'}>
+                          {r.location}
+                        </Text>
+                      </Group>
+                      <Group>
+                        <Text size="xs" c={isCurrent ? 'white' : 'dimmed'} w={60}>
+                          猫粮
+                        </Text>
+                        <Text size="sm" c={isCurrent ? 'white' : 'inherit'}>
+                          {r.cat_food_type} · {r.quantity}
+                        </Text>
+                      </Group>
+                      {r.remark && (
+                        <Text
+                          size="xs"
+                          c={isCurrent ? 'white' : 'dimmed'}
+                          mt={4}
+                          lineClamp={2}
+                        >
+                          {r.remark}
+                        </Text>
+                      )}
+                    </Stack>
+                  </Card>
+                </Timeline.Item>
+              );
+            })}
+          </Timeline>
+        )}
       </Card>
 
       <Modal opened={editOpened} onClose={closeEdit} title="编辑投喂记录" centered>
