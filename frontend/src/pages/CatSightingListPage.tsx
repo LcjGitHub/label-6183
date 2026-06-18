@@ -76,6 +76,8 @@ export function CatSightingListPage() {
   const handleClearSearch = () => {
     setSearchInput('');
     setSearchKeyword('');
+    setCoatColorValue(null);
+    setCoatColor('');
   };
 
   const handleCoatColorChange = (value: string | null) => {
@@ -123,6 +125,7 @@ export function CatSightingListPage() {
         photo_url: form.photo_url || null,
         coat_color: form.coat_color || null,
       });
+      await fetchCoatColors();
       resetForm();
       close();
     } finally {
@@ -130,7 +133,7 @@ export function CatSightingListPage() {
     }
   };
 
-  if (listLoading && records.length === 0) {
+  if (listLoading) {
     return (
       <Stack gap="md">
         <Group justify="space-between">
@@ -212,12 +215,6 @@ export function CatSightingListPage() {
         <Alert color="red" withCloseButton onClose={clearError}>
           {error}
         </Alert>
-      )}
-
-      {listLoading && (
-        <Group justify="center" py="sm">
-          <Loader size="sm" />
-        </Group>
       )}
 
       {records.length === 0 ? (
