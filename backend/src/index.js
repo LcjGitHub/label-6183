@@ -6,6 +6,7 @@ import feedingRouter from './routes/feeding.js';
 import healthFollowupRouter from './routes/healthFollowup.js';
 import catSightingRouter from './routes/catSighting.js';
 import adoptionRouter from './routes/adoption.js';
+import volunteerScheduleRouter from './routes/volunteerSchedule.js';
 
 const PORT = 5000;
 const app = express();
@@ -20,6 +21,7 @@ app.use('/api/feeding', feedingRouter);
 app.use('/api/health-followup', healthFollowupRouter);
 app.use('/api/cat-sightings', catSightingRouter);
 app.use('/api/adoption', adoptionRouter);
+app.use('/api/volunteer-schedule', volunteerScheduleRouter);
 
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok' });

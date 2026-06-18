@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { FeedingRecord, HealthFollowup, CatSighting, AdoptionIntention } from './types';
+import type { FeedingRecord, HealthFollowup, CatSighting, AdoptionIntention, VolunteerSchedule } from './types';
 
 const api = axios.create({
   baseURL: '/api',
@@ -139,4 +139,39 @@ export async function updateAdoptionIntention(
 /** 删除领养意向 */
 export async function deleteAdoptionIntention(id: number): Promise<void> {
   await api.delete(`/adoption/${id}`);
+}
+
+/** 获取所有志愿者排班 */
+export async function fetchVolunteerSchedules(date?: string): Promise<VolunteerSchedule[]> {
+  const params = date ? { date } : {};
+  const { data } = await api.get<VolunteerSchedule[]>('/volunteer-schedule', { params });
+  return data;
+}
+
+/** 获取单条志愿者排班详情 */
+export async function fetchVolunteerSchedule(id: number): Promise<VolunteerSchedule> {
+  const { data } = await api.get<VolunteerSchedule>(`/volunteer-schedule/${id}`);
+  return data;
+}
+
+/** 新建志愿者排班 */
+export async function createVolunteerSchedule(
+  payload: Omit<VolunteerSchedule, 'id' | 'created_at'>
+): Promise<VolunteerSchedule> {
+  const { data } = await api.post<VolunteerSchedule>('/volunteer-schedule', payload);
+  return data;
+}
+
+/** 更新志愿者排班 */
+export async function updateVolunteerSchedule(
+  id: number,
+  payload: Partial<Omit<VolunteerSchedule, 'id' | 'created_at'>>
+): Promise<VolunteerSchedule> {
+  const { data } = await api.put<VolunteerSchedule>(`/volunteer-schedule/${id}`, payload);
+  return data;
+}
+
+/** 删除志愿者排班 */
+export async function deleteVolunteerSchedule(id: number): Promise<void> {
+  await api.delete(`/volunteer-schedule/${id}`);
 }

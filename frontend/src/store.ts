@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { FeedingRecord, HealthFollowup, CatSighting, AdoptionIntention } from './types';
+import type { FeedingRecord, HealthFollowup, CatSighting, AdoptionIntention, VolunteerSchedule } from './types';
 import * as api from './api';
 
 interface FeedingStore {
@@ -285,6 +285,79 @@ export const useAdoptionStore = create<AdoptionStore>((set, get) => ({
 
   deleteRecord: async (id) => {
     await api.deleteAdoptionIntention(id);
+    set({
+      records: get().records.filter((r) => r.id !== id),
+      currentRecord: get().currentRecord?.id === id ? null : get().currentRecord,
+    });
+  },
+
+  clearError: () => set({ error: null }),
+}));
+
+interface VolunteerScheduleStore {
+  records: VolunteerSchedule[];
+  currentRecord: VolunteerSchedule | null;
+  listLoading: boolean;
+  detailLoading: boolean;
+  error: string | null;
+  fetchRecords: (date?: string) => Promise<void>;
+  fetchRecord: (id: number) => Promise<void>;
+  createRecord: (payload: Omit<VolunteerSchedule, 'id' | 'created_at'>) => Promise<VolunteerSchedule>;
+  updateRecord: (
+    id: number,
+    payload: Partial<Omit<VolunteerSchedule, 'id' | 'created_at'>>
+  ) => Promise<void>;
+  deleteRecord: (id: number) => Promise<void>;
+  clearError: () => void;
+}
+
+export const useVolunteerScheduleStore = create<VolunteerScheduleStore>((set, get) => ({
+  records: [],
+  currentRecord: null,
+  listLoading: false,
+  detailLoading: false,
+  error: null,
+
+  fetchRecords: async (date) => {
+    set({ listLoading: true, error: null });
+    try {
+      const records = await api.fetchVolunteerSchedules(date);
+      set({ records, listLoading: false });
+    } catch {
+      set({ listLoading: false, error: '加载志愿者排班列表失败' });
+    }
+  },
+
+  fetchRecord: async (id) => {
+    set({ detailLoading: true, error: null, currentRecord: null });
+    try {
+      const currentRecord = await api.fetchVolunteerSchedule(id);
+      set({ currentRecord, detailLoading: false });
+    } catch {
+      set({ detailLoading: false, error: '加载志愿者排班详情失败' });
+    }
+  },
+
+  createRecord: async (payload) => {
+    const record = await api.createVolunteerSchedule(payload);
+    set({
+      records: [...get().records, record].sort(
+        (a, b) => a.duty_date.localeCompare(b.duty_date) || a.id - b.id
+      ),
+    });
+    return record;
+  },
+
+  updateRecord: async (id, payload) => {
+    const updated = await api.updateVolunteerSchedule(id, payload);
+    set({
+      records: get().records.map((r) => (r.id === id ? { ...r, ...updated } : r)),
+      currentRecord: get().currentRecord?.id === id ? updated : get().currentRecord,
+    });
+  },
+
+  deleteRecord: async (id) => {
+    await api.deleteVolunteerSchedule(id);
     set({
       records: get().records.filter((r) => r.id !== id),
       currentRecord: get().currentRecord?.id === id ? null : get().currentRecord,

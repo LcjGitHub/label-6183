@@ -13,6 +13,7 @@ import { CatSightingListPage } from './pages/CatSightingListPage';
 import { CatSightingDetailPage } from './pages/CatSightingDetailPage';
 import { AdoptionListPage } from './pages/AdoptionListPage';
 import { AdoptionDetailPage } from './pages/AdoptionDetailPage';
+import { VolunteerScheduleListPage } from './pages/VolunteerScheduleListPage';
 
 const theme = createTheme({
   primaryColor: 'orange',
@@ -32,9 +33,10 @@ export function App() {
               <Route path="/followup" element={<HealthFollowupListPage />} />
               <Route path="/followup/:id" element={<HealthFollowupDetailPage />} />
               <Route path="/sightings" element={<CatSightingListPage />} />
-            <Route path="/sightings/:id" element={<CatSightingDetailPage />} />
-            <Route path="/adoption" element={<AdoptionListPage />} />
-            <Route path="/adoption/:id" element={<AdoptionDetailPage />} />
+              <Route path="/sightings/:id" element={<CatSightingDetailPage />} />
+              <Route path="/adoption" element={<AdoptionListPage />} />
+              <Route path="/adoption/:id" element={<AdoptionDetailPage />} />
+              <Route path="/volunteer" element={<VolunteerScheduleListPage />} />
             </Route>
           </Routes>
         </BrowserRouter>

@@ -43,3 +43,15 @@ export interface AdoptionIntention {
   remark: string | null;
   created_at?: string;
 }
+
+/** 志愿者排班 */
+export interface VolunteerSchedule {
+  id: number;
+  volunteer_name: string;
+  duty_date: string;
+  area: string;
+  phone: string;
+  is_arrived: number;
+  remark: string | null;
+  created_at?: string;
+}

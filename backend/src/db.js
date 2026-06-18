@@ -68,6 +68,19 @@ export function initSchema() {
       created_at TEXT DEFAULT (datetime('now'))
     );
   `);
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS volunteer_schedules (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      volunteer_name TEXT NOT NULL,
+      duty_date TEXT NOT NULL,
+      area TEXT NOT NULL,
+      phone TEXT NOT NULL,
+      is_arrived INTEGER NOT NULL DEFAULT 0,
+      remark TEXT,
+      created_at TEXT DEFAULT (datetime('now'))
+    );
+  `);
 }
 
 export default db;
