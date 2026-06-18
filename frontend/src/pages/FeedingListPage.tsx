@@ -9,6 +9,7 @@ import {
   Group,
   Loader,
   Modal,
+  Select,
   SimpleGrid,
   Stack,
   Text,
@@ -21,6 +22,20 @@ import { useDisclosure } from '@mantine/hooks';
 import dayjs from 'dayjs';
 import { useFeedingStore } from '../store';
 
+const WEATHER_OPTIONS = [
+  { value: '晴天', label: '☀️ 晴天' },
+  { value: '阴天', label: '☁️ 阴天' },
+  { value: '雨天', label: '🌧️ 雨天' },
+  { value: '雪天', label: '❄️ 雪天' },
+];
+
+const WEATHER_COLOR_MAP: Record<string, string> = {
+  '晴天': 'yellow',
+  '阴天': 'gray',
+  '雨天': 'blue',
+  '雪天': 'cyan',
+};
+
 /** 投喂记录列表页 */
 export function FeedingListPage() {
   const { records, listLoading, error, fetchRecords, createRecord, deleteRecord, clearError } =
@@ -31,6 +46,7 @@ export function FeedingListPage() {
     location: '',
     cat_food_type: '',
     quantity: '',
+    weather: '',
     remark: '',
   });
   const [submitting, setSubmitting] = useState(false);
@@ -48,6 +64,7 @@ export function FeedingListPage() {
         location: form.location,
         cat_food_type: form.cat_food_type,
         quantity: form.quantity,
+        weather: form.weather || null,
         remark: form.remark || null,
       });
       setForm({
@@ -55,6 +72,7 @@ export function FeedingListPage() {
         location: '',
         cat_food_type: '',
         quantity: '',
+        weather: '',
         remark: '',
       });
       close();
@@ -98,9 +116,16 @@ export function FeedingListPage() {
           {records.map((r) => (
             <Card key={r.id} shadow="sm" padding="lg" radius="md" withBorder>
               <Group justify="space-between" mb="xs">
-                <Text fw={700} size="lg" component={Link} to={`/feeding/${r.id}`} c="orange">
-                  {r.feeding_date}
-                </Text>
+                <Group gap="xs">
+                  <Text fw={700} size="lg" component={Link} to={`/feeding/${r.id}`} c="orange">
+                    {r.feeding_date}
+                  </Text>
+                  {r.weather && (
+                    <Badge variant="light" color={WEATHER_COLOR_MAP[r.weather] || 'gray'} size="sm">
+                      {r.weather}
+                    </Badge>
+                  )}
+                </Group>
                 <Badge variant="light">{r.cat_food_type}</Badge>
               </Group>
               <Stack gap={4}>
@@ -172,6 +197,14 @@ export function FeedingListPage() {
             value={form.quantity}
             onChange={(e) => setForm({ ...form, quantity: e.target.value })}
             required
+          />
+          <Select
+            label="天气"
+            placeholder="选择天气状况（选填）"
+            data={WEATHER_OPTIONS}
+            value={form.weather}
+            onChange={(v) => setForm({ ...form, weather: v ?? '' })}
+            clearable
           />
           <Textarea
             label="备注"

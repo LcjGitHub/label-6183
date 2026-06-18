@@ -57,6 +57,13 @@ export function initSchema() {
     );
   `);
 
+  const weatherColumn = db
+    .prepare("SELECT name FROM pragma_table_info('feeding_records') WHERE name = 'weather'")
+    .get();
+  if (!weatherColumn) {
+    db.exec(`ALTER TABLE feeding_records ADD COLUMN weather TEXT`);
+  }
+
   const photoUrlColumn = db
     .prepare("SELECT name FROM pragma_table_info('cat_sightings') WHERE name = 'photo_url'")
     .get();

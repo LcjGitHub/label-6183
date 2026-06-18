@@ -20,18 +20,23 @@ router.get('/:id', (req, res) => {
   res.json(record);
 });
 
+const WEATHER_OPTIONS = ['晴天', '阴天', '雨天', '雪天'];
+
 router.post('/', (req, res) => {
-  const { feeding_date, location, cat_food_type, quantity, remark } = req.body;
+  const { feeding_date, location, cat_food_type, quantity, weather, remark } = req.body;
   if (!feeding_date || !location || !cat_food_type || !quantity) {
     return res
       .status(400)
       .json({ error: '投喂日期、投喂地点、猫粮种类、投喂量均为必填' });
   }
+  if (weather && !WEATHER_OPTIONS.includes(weather)) {
+    return res.status(400).json({ error: '天气值无效，可选：晴天、阴天、雨天、雪天' });
+  }
   const result = db
     .prepare(
-      'INSERT INTO feeding_records (feeding_date, location, cat_food_type, quantity, remark) VALUES (?, ?, ?, ?, ?)'
+      'INSERT INTO feeding_records (feeding_date, location, cat_food_type, quantity, weather, remark) VALUES (?, ?, ?, ?, ?, ?)'
     )
-    .run(feeding_date, location, cat_food_type, quantity, remark ?? null);
+    .run(feeding_date, location, cat_food_type, quantity, weather ?? null, remark ?? null);
   const record = db
     .prepare('SELECT * FROM feeding_records WHERE id = ?')
     .get(result.lastInsertRowid);
@@ -43,16 +48,20 @@ router.put('/:id', (req, res) => {
   if (!existing) {
     return res.status(404).json({ error: '投喂记录不存在' });
   }
-  const { feeding_date, location, cat_food_type, quantity, remark } = req.body;
+  const { feeding_date, location, cat_food_type, quantity, weather, remark } = req.body;
+  if (weather && !WEATHER_OPTIONS.includes(weather)) {
+    return res.status(400).json({ error: '天气值无效，可选：晴天、阴天、雨天、雪天' });
+  }
   db.prepare(
     `UPDATE feeding_records
-     SET feeding_date = ?, location = ?, cat_food_type = ?, quantity = ?, remark = ?
+     SET feeding_date = ?, location = ?, cat_food_type = ?, quantity = ?, weather = ?, remark = ?
      WHERE id = ?`
   ).run(
     feeding_date ?? existing.feeding_date,
     location ?? existing.location,
     cat_food_type ?? existing.cat_food_type,
     quantity ?? existing.quantity,
+    weather !== undefined ? weather : existing.weather,
     remark ?? existing.remark,
     req.params.id
   );

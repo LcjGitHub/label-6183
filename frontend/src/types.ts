@@ -5,6 +5,7 @@ export interface FeedingRecord {
   location: string;
   cat_food_type: string;
   quantity: string;
+  weather: string | null;
   remark: string | null;
   created_at?: string;
 }
