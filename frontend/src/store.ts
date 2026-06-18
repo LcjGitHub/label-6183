@@ -157,7 +157,7 @@ interface CatSightingStore {
   searchKeyword: string;
   fetchRecords: (keyword?: string) => Promise<void>;
   fetchRecord: (id: number) => Promise<void>;
-  createRecord: (payload: Omit<CatSighting, 'id' | 'created_at'>) => Promise<CatSighting>;
+  createRecord: (payload: Omit<CatSighting, 'id' | 'created_at'>) => Promise<void>;
   updateRecord: (
     id: number,
     payload: Partial<Omit<CatSighting, 'id' | 'created_at'>>
@@ -196,13 +196,8 @@ export const useCatSightingStore = create<CatSightingStore>((set, get) => ({
   },
 
   createRecord: async (payload) => {
-    const record = await api.createCatSighting(payload);
-    set({
-      records: [record, ...get().records].sort(
-        (a, b) => b.sighting_time.localeCompare(a.sighting_time) || b.id - a.id
-      ),
-    });
-    return record;
+    await api.createCatSighting(payload);
+    await get().fetchRecords(get().searchKeyword);
   },
 
   updateRecord: async (id, payload) => {

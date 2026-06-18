@@ -101,9 +101,35 @@ export function CatSightingListPage() {
 
   if (listLoading && records.length === 0) {
     return (
-      <Group justify="center" py="xl">
-        <Loader />
-      </Group>
+      <Stack gap="md">
+        <Group justify="space-between">
+          <Title order={2}>流浪猫目击地图</Title>
+          <Button onClick={open}>新增标注</Button>
+        </Group>
+        <Group>
+          <TextInput
+            placeholder="输入昵称或地点搜索猫咪"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                handleSearch();
+              }
+            }}
+            style={{ flex: 1 }}
+            leftSection={<span>🔍</span>}
+          />
+          <Button onClick={handleSearch} variant="filled">
+            搜索
+          </Button>
+          <Button onClick={handleClearSearch} variant="light">
+            清空
+          </Button>
+        </Group>
+        <Group justify="center" py="xl">
+          <Loader />
+        </Group>
+      </Stack>
     );
   }
 
@@ -141,9 +167,15 @@ export function CatSightingListPage() {
         </Alert>
       )}
 
+      {listLoading && (
+        <Group justify="center" py="sm">
+          <Loader size="sm" />
+        </Group>
+      )}
+
       {records.length === 0 ? (
         <Text c="dimmed" ta="center" py="xl">
-          暂无目击标注，点击「新增标注」开始登记
+          {searchKeyword ? '未找到匹配的目击标注' : '暂无目击标注，点击「新增标注」开始登记'}
         </Text>
       ) : (
         <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
