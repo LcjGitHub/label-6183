@@ -5,8 +5,8 @@ import { DatesProvider } from '@mantine/dates';
 import 'dayjs/locale/zh-cn';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AppLayout } from './components/AppLayout';
-import { CatListPage } from './pages/CatListPage';
-import { CatDetailPage } from './pages/CatDetailPage';
+import { FeedingListPage } from './pages/FeedingListPage';
+import { FeedingDetailPage } from './pages/FeedingDetailPage';
 
 const theme = createTheme({
   primaryColor: 'orange',
@@ -20,8 +20,8 @@ export function App() {
         <BrowserRouter>
           <Routes>
             <Route element={<AppLayout />}>
-              <Route path="/" element={<CatListPage />} />
-              <Route path="/cats/:id" element={<CatDetailPage />} />
+              <Route path="/" element={<FeedingListPage />} />
+              <Route path="/feeding/:id" element={<FeedingDetailPage />} />
             </Route>
           </Routes>
         </BrowserRouter>

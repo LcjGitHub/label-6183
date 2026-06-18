@@ -8,9 +8,9 @@ export function AppLayout() {
       <AppShell.Header>
         <Container size="lg" h="100%">
           <Group h="100%" justify="space-between">
-            <Title order={3}>🐱 城市野猫观察日志</Title>
+            <Title order={3}>🐱 社区流浪猫投喂登记</Title>
             <Text size="sm" c="dimmed">
-              记录街头小精灵的日常
+              记录每一次爱心投喂
             </Text>
           </Group>
         </Container>

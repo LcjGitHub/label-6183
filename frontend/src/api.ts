@@ -1,58 +1,40 @@
 import axios from 'axios';
-import type { Cat, CatDetail, ObservationLog } from './types';
+import type { FeedingRecord } from './types';
 
 const api = axios.create({
   baseURL: '/api',
 });
 
-/** 获取所有猫咪 */
-export async function fetchCats(): Promise<Cat[]> {
-  const { data } = await api.get<Cat[]>('/cats');
+/** 获取所有投喂记录 */
+export async function fetchRecords(): Promise<FeedingRecord[]> {
+  const { data } = await api.get<FeedingRecord[]>('/feeding');
   return data;
 }
 
-/** 获取猫咪详情 */
-export async function fetchCat(id: number): Promise<CatDetail> {
-  const { data } = await api.get<CatDetail>(`/cats/${id}`);
+/** 获取单条投喂记录详情 */
+export async function fetchRecord(id: number): Promise<FeedingRecord> {
+  const { data } = await api.get<FeedingRecord>(`/feeding/${id}`);
   return data;
 }
 
-/** 新建猫咪 */
-export async function createCat(payload: Omit<Cat, 'id'>): Promise<Cat> {
-  const { data } = await api.post<Cat>('/cats', payload);
+/** 新建投喂记录 */
+export async function createRecord(
+  payload: Omit<FeedingRecord, 'id' | 'created_at'>
+): Promise<FeedingRecord> {
+  const { data } = await api.post<FeedingRecord>('/feeding', payload);
   return data;
 }
 
-/** 更新猫咪 */
-export async function updateCat(id: number, payload: Partial<Cat>): Promise<Cat> {
-  const { data } = await api.put<Cat>(`/cats/${id}`, payload);
-  return data;
-}
-
-/** 删除猫咪 */
-export async function deleteCat(id: number): Promise<void> {
-  await api.delete(`/cats/${id}`);
-}
-
-/** 新增观察日志 */
-export async function createLog(
-  catId: number,
-  payload: { observed_at: string; content: string }
-): Promise<ObservationLog> {
-  const { data } = await api.post<ObservationLog>(`/logs/cat/${catId}`, payload);
-  return data;
-}
-
-/** 更新观察日志 */
-export async function updateLog(
+/** 更新投喂记录 */
+export async function updateRecord(
   id: number,
-  payload: Partial<Pick<ObservationLog, 'observed_at' | 'content'>>
-): Promise<ObservationLog> {
-  const { data } = await api.put<ObservationLog>(`/logs/${id}`, payload);
+  payload: Partial<Omit<FeedingRecord, 'id' | 'created_at'>>
+): Promise<FeedingRecord> {
+  const { data } = await api.put<FeedingRecord>(`/feeding/${id}`, payload);
   return data;
 }
 
-/** 删除观察日志 */
-export async function deleteLog(id: number): Promise<void> {
-  await api.delete(`/logs/${id}`);
+/** 删除投喂记录 */
+export async function deleteRecord(id: number): Promise<void> {
+  await api.delete(`/feeding/${id}`);
 }

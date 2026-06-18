@@ -1,24 +1,10 @@
-/** 猫咪档案 */
-export interface Cat {
+/** 投喂记录 */
+export interface FeedingRecord {
   id: number;
-  nickname: string;
-  fur_color: string;
+  feeding_date: string;
   location: string;
-  personality: string;
+  cat_food_type: string;
+  quantity: string;
+  remark: string | null;
   created_at?: string;
-  log_count?: number;
-}
-
-/** 观察日志 */
-export interface ObservationLog {
-  id: number;
-  cat_id: number;
-  observed_at: string;
-  content: string;
-  created_at?: string;
-}
-
-/** 猫咪详情（含日志列表） */
-export interface CatDetail extends Cat {
-  logs: ObservationLog[];
 }

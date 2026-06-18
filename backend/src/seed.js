@@ -1,72 +1,52 @@
 import db from './db.js';
 
 /**
- * 若数据库为空则写入 3 只猫及各自 3 条观察日志
+ * 若数据库为空则写入 4 条投喂记录示例数据
  */
 export function seedIfEmpty() {
-  const count = db.prepare('SELECT COUNT(*) AS n FROM cats').get().n;
+  const count = db.prepare('SELECT COUNT(*) AS n FROM feeding_records').get().n;
   if (count > 0) return;
 
-  const insertCat = db.prepare(`
-    INSERT INTO cats (nickname, fur_color, location, personality)
-    VALUES (?, ?, ?, ?)
+  const insertRecord = db.prepare(`
+    INSERT INTO feeding_records (feeding_date, location, cat_food_type, quantity, remark)
+    VALUES (?, ?, ?, ?, ?)
   `);
 
-  const insertLog = db.prepare(`
-    INSERT INTO observation_logs (cat_id, observed_at, content)
-    VALUES (?, ?, ?)
-  `);
-
-  const cats = [
+  const records = [
     {
-      nickname: '橘座',
-      fur_color: '橘色虎斑',
-      location: '社区南门花坛',
-      personality: '亲人、贪吃，见人就蹭腿',
-      logs: [
-        { observed_at: '2026-03-01', content: '在花坛边晒太阳，对路人很友好。' },
-        { observed_at: '2026-03-08', content: '有人投喂猫粮，吃得很快，尾巴竖得笔直。' },
-        { observed_at: '2026-03-15', content: '和一只白猫并排躺着，疑似在交朋友。' },
-      ],
+      feeding_date: '2026-06-10',
+      location: '社区南门花坛边',
+      cat_food_type: '伟嘉成猫粮',
+      quantity: '约 150 克（一小碗）',
+      remark: '橘猫吃得很快，三花猫在旁边观望，等橘猫吃完才过来',
     },
     {
-      nickname: '煤球',
-      fur_color: '纯黑',
-      location: '地下车库入口',
-      personality: '警惕、夜行，保持距离',
-      logs: [
-        { observed_at: '2026-02-20', content: '深夜独自巡逻车库，听到脚步声立刻躲进阴影。' },
-        { observed_at: '2026-03-05', content: '白天罕见露面，在墙角舔毛，约五分钟后离开。' },
-        { observed_at: '2026-03-12', content: '捕获到一只小老鼠，叼走后消失在通风口。' },
-      ],
+      feeding_date: '2026-06-12',
+      location: '3 号楼地下车库入口',
+      cat_food_type: '皇家室内猫粮',
+      quantity: '约 100 克',
+      remark: '只有黑猫出现，比较警惕，放好粮后退到远处它才过来吃',
     },
     {
-      nickname: '三花',
-      fur_color: '三花（白/橘/黑）',
-      location: '小区中心喷泉旁',
-      personality: '慵懒、爱睡觉，偶尔伸懒腰',
-      logs: [
-        { observed_at: '2026-02-28', content: '趴在喷泉石沿上睡了整个下午。' },
-        { observed_at: '2026-03-10', content: '被小孩惊扰后挪到长椅下继续睡。' },
-        { observed_at: '2026-03-18', content: '雨后出来舔毛，毛色在湿光下格外漂亮。' },
-      ],
+      feeding_date: '2026-06-15',
+      location: '小区中心喷泉旁长椅下',
+      cat_food_type: '自制猫饭（鸡胸肉+南瓜）',
+      quantity: '约 200 克，分装两小盘',
+      remark: '两只白猫一起过来吃，相处很和谐，吃完还舔了会儿毛',
+    },
+    {
+      feeding_date: '2026-06-17',
+      location: '北门快递柜旁草地',
+      cat_food_type: '妙鲜包（金枪鱼味）',
+      quantity: '2 袋（每袋 85 克）',
+      remark: '碰到一位阿姨也在喂猫，聊了一会儿，她每天早上都会来',
     },
   ];
 
   db.exec('BEGIN');
   try {
-    for (const cat of cats) {
-      const { logs, ...catData } = cat;
-      const result = insertCat.run(
-        catData.nickname,
-        catData.fur_color,
-        catData.location,
-        catData.personality
-      );
-      const catId = result.lastInsertRowid;
-      for (const log of logs) {
-        insertLog.run(catId, log.observed_at, log.content);
-      }
+    for (const r of records) {
+      insertRecord.run(r.feeding_date, r.location, r.cat_food_type, r.quantity, r.remark);
     }
     db.exec('COMMIT');
   } catch (err) {
@@ -74,5 +54,5 @@ export function seedIfEmpty() {
     throw err;
   }
 
-  console.log('已写入 seed 数据：3 只猫，各 3 条观察日志');
+  console.log('已写入 seed 数据：4 条投喂记录示例');
 }

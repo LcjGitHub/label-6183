@@ -1,110 +1,73 @@
 import { create } from 'zustand';
-import type { Cat, CatDetail } from './types';
+import type { FeedingRecord } from './types';
 import * as api from './api';
 
-interface CatStore {
-  cats: Cat[];
-  currentCat: CatDetail | null;
+interface FeedingStore {
+  records: FeedingRecord[];
+  currentRecord: FeedingRecord | null;
   loading: boolean;
   error: string | null;
-  fetchCats: () => Promise<void>;
-  fetchCat: (id: number) => Promise<void>;
-  createCat: (payload: Omit<Cat, 'id'>) => Promise<Cat>;
-  updateCat: (id: number, payload: Partial<Cat>) => Promise<void>;
-  deleteCat: (id: number) => Promise<void>;
-  addLog: (catId: number, observed_at: string, content: string) => Promise<void>;
-  updateLog: (logId: number, observed_at: string, content: string) => Promise<void>;
-  deleteLog: (logId: number) => Promise<void>;
+  fetchRecords: () => Promise<void>;
+  fetchRecord: (id: number) => Promise<void>;
+  createRecord: (payload: Omit<FeedingRecord, 'id' | 'created_at'>) => Promise<FeedingRecord>;
+  updateRecord: (
+    id: number,
+    payload: Partial<Omit<FeedingRecord, 'id' | 'created_at'>>
+  ) => Promise<void>;
+  deleteRecord: (id: number) => Promise<void>;
   clearError: () => void;
 }
 
-export const useCatStore = create<CatStore>((set, get) => ({
-  cats: [],
-  currentCat: null,
+export const useFeedingStore = create<FeedingStore>((set, get) => ({
+  records: [],
+  currentRecord: null,
   loading: false,
   error: null,
 
-  fetchCats: async () => {
+  fetchRecords: async () => {
     set({ loading: true, error: null });
     try {
-      const cats = await api.fetchCats();
-      set({ cats, loading: false });
+      const records = await api.fetchRecords();
+      set({ records, loading: false });
     } catch {
-      set({ loading: false, error: '加载猫咪列表失败' });
+      set({ loading: false, error: '加载投喂记录列表失败' });
     }
   },
 
-  fetchCat: async (id) => {
+  fetchRecord: async (id) => {
     set({ loading: true, error: null });
     try {
-      const currentCat = await api.fetchCat(id);
-      set({ currentCat, loading: false });
+      const currentRecord = await api.fetchRecord(id);
+      set({ currentRecord, loading: false });
     } catch {
-      set({ loading: false, error: '加载猫咪详情失败' });
+      set({ loading: false, error: '加载投喂记录详情失败' });
     }
   },
 
-  createCat: async (payload) => {
-    const cat = await api.createCat(payload);
-    set({ cats: [...get().cats, cat] });
-    return cat;
-  },
-
-  updateCat: async (id, payload) => {
-    const updated = await api.updateCat(id, payload);
+  createRecord: async (payload) => {
+    const record = await api.createRecord(payload);
     set({
-      cats: get().cats.map((c) => (c.id === id ? { ...c, ...updated } : c)),
-      currentCat:
-        get().currentCat?.id === id ? { ...get().currentCat!, ...updated } : get().currentCat,
+      records: [record, ...get().records].sort(
+        (a, b) => b.feeding_date.localeCompare(a.feeding_date) || b.id - a.id
+      ),
+    });
+    return record;
+  },
+
+  updateRecord: async (id, payload) => {
+    const updated = await api.updateRecord(id, payload);
+    set({
+      records: get().records.map((r) => (r.id === id ? { ...r, ...updated } : r)),
+      currentRecord: get().currentRecord?.id === id ? updated : get().currentRecord,
     });
   },
 
-  deleteCat: async (id) => {
-    await api.deleteCat(id);
-    set({ cats: get().cats.filter((c) => c.id !== id) });
-  },
-
-  addLog: async (catId, observed_at, content) => {
-    const log = await api.createLog(catId, { observed_at, content });
-    const current = get().currentCat;
-    if (current?.id === catId) {
-      set({
-        currentCat: {
-          ...current,
-          logs: [log, ...current.logs].sort(
-            (a, b) => b.observed_at.localeCompare(a.observed_at) || b.id - a.id
-          ),
-        },
-      });
-    }
-  },
-
-  updateLog: async (logId, observed_at, content) => {
-    const updated = await api.updateLog(logId, { observed_at, content });
-    const current = get().currentCat;
-    if (current) {
-      set({
-        currentCat: {
-          ...current,
-          logs: current.logs
-            .map((l) => (l.id === logId ? updated : l))
-            .sort((a, b) => b.observed_at.localeCompare(a.observed_at) || b.id - a.id),
-        },
-      });
-    }
-  },
-
-  deleteLog: async (logId) => {
-    await api.deleteLog(logId);
-    const current = get().currentCat;
-    if (current) {
-      set({
-        currentCat: {
-          ...current,
-          logs: current.logs.filter((l) => l.id !== logId),
-        },
-      });
-    }
+  deleteRecord: async (id) => {
+    await api.deleteRecord(id);
+    set({
+      records: get().records.filter((r) => r.id !== id),
+      currentRecord: get().currentRecord?.id === id ? null : get().currentRecord,
+    });
   },
 
   clearError: () => set({ error: null }),

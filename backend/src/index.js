@@ -2,8 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import { initSchema } from './db.js';
 import { seedIfEmpty } from './seed.js';
-import catsRouter from './routes/cats.js';
-import logsRouter from './routes/logs.js';
+import feedingRouter from './routes/feeding.js';
 
 const PORT = 5000;
 const app = express();
@@ -14,8 +13,7 @@ app.use(express.json());
 initSchema();
 seedIfEmpty();
 
-app.use('/api/cats', catsRouter);
-app.use('/api/logs', logsRouter);
+app.use('/api/feeding', feedingRouter);
 
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok' });
