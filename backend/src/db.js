@@ -57,7 +57,12 @@ export function initSchema() {
     );
   `);
 
-  db.exec(`ALTER TABLE cat_sightings ADD COLUMN IF NOT EXISTS photo_url TEXT`);
+  const photoUrlColumn = db
+    .prepare("SELECT name FROM pragma_table_info('cat_sightings') WHERE name = 'photo_url'")
+    .get();
+  if (!photoUrlColumn) {
+    db.exec(`ALTER TABLE cat_sightings ADD COLUMN photo_url TEXT`);
+  }
 
   db.exec(`
     CREATE TABLE IF NOT EXISTS adoption_intentions (
