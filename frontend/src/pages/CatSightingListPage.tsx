@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  ActionIcon,
   Alert,
   Badge,
   Button,
@@ -24,49 +23,70 @@ import { useCatSightingStore } from '../store';
 
 /** 流浪猫目击标注列表页 */
 export function CatSightingListPage() {
-  const { records, listLoading, error, fetchRecords, createRecord, deleteRecord, clearError } =
+  const { records, listLoading, error, fetchRecords, createRecord, clearError } =
     useCatSightingStore();
   const [opened, { open, close }] = useDisclosure(false);
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<{
+    cat_nickname: string;
+    latitude: string;
+    longitude: string;
+    sighting_time: Date;
+    location_description: string;
+  }>({
     cat_nickname: '',
-    latitude: 0,
-    longitude: 0,
+    latitude: '',
+    longitude: '',
     sighting_time: new Date(),
     location_description: '',
   });
   const [submitting, setSubmitting] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchRecords();
   }, [fetchRecords]);
 
+  const resetForm = () => {
+    setForm({
+      cat_nickname: '',
+      latitude: '',
+      longitude: '',
+      sighting_time: new Date(),
+      location_description: '',
+    });
+    setValidationError(null);
+  };
+
   const handleCreate = async () => {
-    if (!form.cat_nickname || !form.location_description) return;
+    if (!form.cat_nickname || !form.location_description) {
+      setValidationError('猫咪昵称和地点描述为必填项');
+      return;
+    }
+    if (!form.latitude || !form.longitude) {
+      setValidationError('纬度和经度为必填项，请填写坐标后再保存');
+      return;
+    }
+    const lat = Number(form.latitude);
+    const lng = Number(form.longitude);
+    if (Number.isNaN(lat) || Number.isNaN(lng)) {
+      setValidationError('纬度和经度必须为有效数字');
+      return;
+    }
+    setValidationError(null);
     setSubmitting(true);
     try {
       await createRecord({
         cat_nickname: form.cat_nickname,
-        latitude: form.latitude,
-        longitude: form.longitude,
+        latitude: lat,
+        longitude: lng,
         sighting_time: dayjs(form.sighting_time).format('YYYY-MM-DD HH:mm:ss'),
         location_description: form.location_description,
       });
-      setForm({
-        cat_nickname: '',
-        latitude: 0,
-        longitude: 0,
-        sighting_time: new Date(),
-        location_description: '',
-      });
+      resetForm();
       close();
     } finally {
       setSubmitting(false);
     }
-  };
-
-  const handleDelete = async (id: number) => {
-    if (!window.confirm('确定删除这条目击标注？')) return;
-    await deleteRecord(id);
   };
 
   if (listLoading && records.length === 0) {
@@ -92,7 +112,7 @@ export function CatSightingListPage() {
 
       {records.length === 0 ? (
         <Text c="dimmed" ta="center" py="xl">
-          暂无异见标注，点击「新增标注」开始登记
+          暂无目击标注，点击「新增标注」开始登记
         </Text>
       ) : (
         <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
@@ -118,18 +138,10 @@ export function CatSightingListPage() {
                   {r.location_description}
                 </Text>
               </Stack>
-              <Group mt="md" justify="space-between">
+              <Group mt="md">
                 <Button component={Link} to={`/sightings/${r.id}`} variant="light" size="xs">
                   查看详情
                 </Button>
-                <ActionIcon
-                  color="red"
-                  variant="subtle"
-                  onClick={() => handleDelete(r.id)}
-                  aria-label="删除"
-                >
-                  ✕
-                </ActionIcon>
               </Group>
             </Card>
           ))}
@@ -138,6 +150,11 @@ export function CatSightingListPage() {
 
       <Modal opened={opened} onClose={close} title="新增目击标注" centered>
         <Stack>
+          {validationError && (
+            <Alert color="red" withCloseButton onClose={() => setValidationError(null)}>
+              {validationError}
+            </Alert>
+          )}
           <TextInput
             label="猫咪昵称"
             placeholder="如：橘座、小黑、三花"
@@ -149,16 +166,16 @@ export function CatSightingListPage() {
             <NumberInput
               label="纬度"
               placeholder="如：39.9042"
-              value={form.latitude}
-              onChange={(v) => setForm({ ...form, latitude: Number(v) || 0 })}
+              value={form.latitude === '' ? undefined : Number(form.latitude)}
+              onChange={(v) => setForm({ ...form, latitude: v === undefined ? '' : String(v) })}
               decimalScale={6}
               required
             />
             <NumberInput
               label="经度"
               placeholder="如：116.4074"
-              value={form.longitude}
-              onChange={(v) => setForm({ ...form, longitude: Number(v) || 0 })}
+              value={form.longitude === '' ? undefined : Number(form.longitude)}
+              onChange={(v) => setForm({ ...form, longitude: v === undefined ? '' : String(v) })}
               decimalScale={6}
               required
             />
@@ -181,7 +198,6 @@ export function CatSightingListPage() {
           <Button
             onClick={handleCreate}
             loading={submitting}
-            disabled={!form.cat_nickname || !form.location_description}
           >
             保存
           </Button>

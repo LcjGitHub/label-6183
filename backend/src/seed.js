@@ -123,7 +123,62 @@ function seedHealthFollowups() {
 /**
  * 若数据库为空则写入种子示例数据
  */
+function seedCatSightings() {
+  const count = db.prepare('SELECT COUNT(*) AS n FROM cat_sightings').get().n;
+  if (count > 0) return;
+
+  const insertRecord = db.prepare(`
+    INSERT INTO cat_sightings (cat_nickname, latitude, longitude, sighting_time, location_description)
+    VALUES (?, ?, ?, ?, ?)
+  `);
+
+  const records = [
+    {
+      cat_nickname: '橘座',
+      latitude: 39.9042,
+      longitude: 116.4074,
+      sighting_time: '2026-06-10 08:30:00',
+      location_description: '社区南门花坛边，橘色大猫正在晒太阳',
+    },
+    {
+      cat_nickname: '小黑',
+      latitude: 39.9125,
+      longitude: 116.3913,
+      sighting_time: '2026-06-12 19:15:00',
+      location_description: '3号楼地下车库入口旁，黑色短毛猫躲在车底',
+    },
+    {
+      cat_nickname: '三花',
+      latitude: 39.9088,
+      longitude: 116.4156,
+      sighting_time: '2026-06-14 07:00:00',
+      location_description: '小区中心喷泉旁长椅下，三花猫在舔毛',
+    },
+    {
+      cat_nickname: '小白',
+      latitude: 39.9021,
+      longitude: 116.4203,
+      sighting_time: '2026-06-16 18:45:00',
+      location_description: '北门快递柜旁草地，白色长毛猫独自徘徊',
+    },
+  ];
+
+  db.exec('BEGIN');
+  try {
+    for (const r of records) {
+      insertRecord.run(r.cat_nickname, r.latitude, r.longitude, r.sighting_time, r.location_description);
+    }
+    db.exec('COMMIT');
+  } catch (err) {
+    db.exec('ROLLBACK');
+    throw err;
+  }
+
+  console.log('已写入 seed 数据：4 条目击标注示例');
+}
+
 export function seedIfEmpty() {
   seedFeedingRecords();
   seedHealthFollowups();
+  seedCatSightings();
 }

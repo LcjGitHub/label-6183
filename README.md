@@ -1,6 +1,6 @@
 # 流浪猫目击地图标注
 
-社区流浪猫管理系统，包含流浪猫目击地图标注、投喂记录和健康随访三大功能模块。
+记录社区流浪猫目击信息，在地图上标注发现位置，方便追踪和管理。
 
 ## 技术栈
 
@@ -11,15 +11,17 @@
 
 ## 快速启动
 
-### 1. 后端（一条命令）
+### 1. 启动后端
 
 ```bash
-cd backend && npm install && npm start
+cd backend
+npm install
+npm start
 ```
 
 服务地址：`http://localhost:5000`
 
-首次启动会自动创建数据库。
+首次启动会自动创建数据库并写入示例数据（投喂记录、健康随访记录、目击标注各若干条）。
 
 开发时可用热重载：
 
@@ -27,22 +29,24 @@ cd backend && npm install && npm start
 cd backend && npm run dev
 ```
 
-### 2. 前端（一条命令）
+### 2. 启动前端
 
 另开一个终端：
 
 ```bash
-cd frontend && npm install && npm run dev
+cd frontend
+npm install
+npm run dev
 ```
 
-浏览器访问：`http://localhost:5101`
+浏览器访问：`http://localhost:5101`，将自动打开「流浪猫目击地图」页面。
 
 ## 功能模块
 
 ### 🗺️ 流浪猫目击地图
 
 - **标注列表**：卡片展示所有目击标注，显示猫咪昵称、坐标、发现时间、地点描述预览
-- **标注详情**：完整展示全部字段，包含经纬度坐标，提供「在地图中查看」外链跳转 OpenStreetMap，支持编辑和删除
+- **标注详情**：完整展示全部字段，内嵌 OpenStreetMap 地图显示标注点坐标位置，支持编辑和删除
 - **基础 CRUD**：标注点的增删改查
 
 ### 🍽️ 投喂记录

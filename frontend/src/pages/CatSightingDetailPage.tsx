@@ -20,6 +20,35 @@ import { useDisclosure } from '@mantine/hooks';
 import dayjs from 'dayjs';
 import { useCatSightingStore } from '../store';
 
+function InlineMap({ latitude, longitude }: { latitude: number; longitude: number }) {
+  const mapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${(longitude - 0.005).toFixed(6)}%2C${(latitude - 0.003).toFixed(6)}%2C${(longitude + 0.005).toFixed(6)}%2C${(latitude + 0.003).toFixed(6)}&layer=mapnik&marker=${latitude}%2C${longitude}`;
+
+  return (
+    <Stack gap={4}>
+      <Text size="sm" fw={500} c="dimmed">
+        坐标位置
+      </Text>
+      <div style={{ borderRadius: 8, overflow: 'hidden', border: '1px solid #dee2e6' }}>
+        <iframe
+          title="目击位置地图"
+          src={mapUrl}
+          style={{ border: 0, width: '100%', height: 300 }}
+          loading="lazy"
+        />
+      </div>
+      <Anchor
+        href={`https://www.openstreetmap.org/?mlat=${latitude}&mlon=${longitude}#map=18/${latitude}/${longitude}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        size="xs"
+        c="dimmed"
+      >
+        在 OpenStreetMap 中打开大图
+      </Anchor>
+    </Stack>
+  );
+}
+
 /** 流浪猫目击标注详情页 */
 export function CatSightingDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -36,14 +65,21 @@ export function CatSightingDetailPage() {
   } = useCatSightingStore();
 
   const [editOpened, { open: openEdit, close: closeEdit }] = useDisclosure(false);
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<{
+    cat_nickname: string;
+    latitude: string;
+    longitude: string;
+    sighting_time: Date;
+    location_description: string;
+  }>({
     cat_nickname: '',
-    latitude: 0,
-    longitude: 0,
+    latitude: '',
+    longitude: '',
     sighting_time: new Date(),
     location_description: '',
   });
   const [submitting, setSubmitting] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   useEffect(() => {
     if (recordId) fetchRecord(recordId);
@@ -53,8 +89,8 @@ export function CatSightingDetailPage() {
     if (currentRecord) {
       setForm({
         cat_nickname: currentRecord.cat_nickname,
-        latitude: currentRecord.latitude,
-        longitude: currentRecord.longitude,
+        latitude: String(currentRecord.latitude),
+        longitude: String(currentRecord.longitude),
         sighting_time: dayjs(currentRecord.sighting_time).toDate(),
         location_description: currentRecord.location_description,
       });
@@ -62,12 +98,27 @@ export function CatSightingDetailPage() {
   }, [currentRecord]);
 
   const handleUpdate = async () => {
+    if (!form.cat_nickname || !form.location_description) {
+      setValidationError('猫咪昵称和地点描述为必填项');
+      return;
+    }
+    if (!form.latitude || !form.longitude) {
+      setValidationError('纬度和经度为必填项，请填写坐标后再保存');
+      return;
+    }
+    const lat = Number(form.latitude);
+    const lng = Number(form.longitude);
+    if (Number.isNaN(lat) || Number.isNaN(lng)) {
+      setValidationError('纬度和经度必须为有效数字');
+      return;
+    }
+    setValidationError(null);
     setSubmitting(true);
     try {
       await updateRecord(recordId, {
         cat_nickname: form.cat_nickname,
-        latitude: form.latitude,
-        longitude: form.longitude,
+        latitude: lat,
+        longitude: lng,
         sighting_time: dayjs(form.sighting_time).format('YYYY-MM-DD HH:mm:ss'),
         location_description: form.location_description,
       });
@@ -150,20 +201,7 @@ export function CatSightingDetailPage() {
             </Text>
             <Text>{currentRecord.longitude}</Text>
           </Group>
-          <Group>
-            <Text w={120} fw={500} c="dimmed">
-              坐标
-            </Text>
-            <Text>
-              <Anchor
-                href={`https://www.openstreetmap.org/?mlat=${currentRecord.latitude}&mlon=${currentRecord.longitude}#map=18/${currentRecord.latitude}/${currentRecord.longitude}`}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                📍 在地图中查看 ({currentRecord.latitude.toFixed(6)}, {currentRecord.longitude.toFixed(6)})
-              </Anchor>
-            </Text>
-          </Group>
+          <InlineMap latitude={currentRecord.latitude} longitude={currentRecord.longitude} />
           <Group>
             <Text w={120} fw={500} c="dimmed">
               发现时间
@@ -186,6 +224,11 @@ export function CatSightingDetailPage() {
 
       <Modal opened={editOpened} onClose={closeEdit} title="编辑目击标注" centered>
         <Stack>
+          {validationError && (
+            <Alert color="red" withCloseButton onClose={() => setValidationError(null)}>
+              {validationError}
+            </Alert>
+          )}
           <TextInput
             label="猫咪昵称"
             value={form.cat_nickname}
@@ -195,15 +238,15 @@ export function CatSightingDetailPage() {
           <Group grow>
             <NumberInput
               label="纬度"
-              value={form.latitude}
-              onChange={(v) => setForm({ ...form, latitude: Number(v) || 0 })}
+              value={form.latitude === '' ? undefined : Number(form.latitude)}
+              onChange={(v) => setForm({ ...form, latitude: v === undefined ? '' : String(v) })}
               decimalScale={6}
               required
             />
             <NumberInput
               label="经度"
-              value={form.longitude}
-              onChange={(v) => setForm({ ...form, longitude: Number(v) || 0 })}
+              value={form.longitude === '' ? undefined : Number(form.longitude)}
+              onChange={(v) => setForm({ ...form, longitude: v === undefined ? '' : String(v) })}
               decimalScale={6}
               required
             />
@@ -225,7 +268,6 @@ export function CatSightingDetailPage() {
           <Button
             onClick={handleUpdate}
             loading={submitting}
-            disabled={!form.cat_nickname || !form.location_description}
           >
             保存
           </Button>
