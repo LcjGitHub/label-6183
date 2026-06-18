@@ -21,7 +21,7 @@ npm start
 
 服务地址：`http://localhost:5000`
 
-首次启动会自动创建数据库并写入示例数据（投喂记录、健康随访记录、目击标注各若干条）。
+首次启动会自动创建数据库并写入示例数据（投喂记录、健康随访记录、目击标注、领养意向各若干条）。
 
 开发时可用热重载：
 
@@ -61,6 +61,13 @@ npm run dev
 - **单条详情**：完整展示记录全部字段，支持编辑和删除
 - **基础 CRUD**：健康随访记录的增删改查
 
+### 🏠 领养意向登记
+
+- **意向列表**：卡片展示所有领养意向，显示申请人姓名、意向猫咪、联系电话、申请日期、补充说明预览；每条卡片内置申请状态下拉选择器，选择后立即保存并更新状态标签
+- **新建意向**：弹窗表单录入，字段包含申请人姓名、联系电话、意向猫咪昵称、申请日期、补充说明；申请状态固定为「待审核」
+- **意向详情**：完整展示全部字段（补充说明为空时显示「无」），支持编辑所有字段（含申请状态）与删除；编辑与删除按钮顶部留白避免被固定导航栏遮挡
+- **基础 CRUD**：领养意向的增删改查（列表页仅保留查看详情入口，删除操作仅限详情页）
+
 ## API 概览
 
 ### 流浪猫目击标注 API
@@ -92,6 +99,16 @@ npm run dev
 | POST | `/api/health-followup` | 新建健康随访记录 |
 | PUT | `/api/health-followup/:id` | 更新健康随访记录 |
 | DELETE | `/api/health-followup/:id` | 删除健康随访记录 |
+
+### 领养意向登记 API
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/adoption` | 领养意向列表（按申请日期倒序） |
+| GET | `/api/adoption/:id` | 单条领养意向详情 |
+| POST | `/api/adoption` | 新建领养意向（默认状态为「待审核」） |
+| PUT | `/api/adoption/:id` | 更新领养意向（可单独修改申请状态） |
+| DELETE | `/api/adoption/:id` | 删除领养意向 |
 
 ## 数据字段
 
@@ -126,6 +143,17 @@ npm run dev
 | went_doctor | 是否就医（0/1） | 是 |
 | remark | 备注 | 否 |
 
+### 领养意向登记
+
+| 字段 | 说明 | 必填 |
+|------|------|------|
+| applicant_name | 申请人姓名 | 是 |
+| phone | 联系电话 | 是 |
+| cat_nickname | 意向猫咪昵称 | 是 |
+| application_date | 申请日期（YYYY-MM-DD） | 是 |
+| application_status | 申请状态（待审核/已通过/已拒绝），新建时默认为「待审核」 | 是 |
+| remark | 补充说明 | 否 |
+
 ## 目录结构
 
 ```
@@ -133,6 +161,7 @@ npm run dev
 │   ├── data/         # feeding.db（运行时自动生成）
 │   └── src/
 │       ├── routes/
+│       │   ├── adoption.js        # 领养意向路由
 │       │   ├── catSighting.js    # 目击标注路由
 │       │   ├── feeding.js        # 投喂记录路由
 │       │   └── healthFollowup.js # 健康随访路由
@@ -144,6 +173,8 @@ npm run dev
 │       ├── components/
 │       │   └── AppLayout.tsx
 │       ├── pages/
+│       │   ├── AdoptionListPage.tsx      # 领养意向列表页
+│       │   ├── AdoptionDetailPage.tsx    # 领养意向详情页
 │       │   ├── CatSightingListPage.tsx    # 目击地图列表页
 │       │   ├── CatSightingDetailPage.tsx  # 目击地图详情页
 │       │   ├── FeedingListPage.tsx

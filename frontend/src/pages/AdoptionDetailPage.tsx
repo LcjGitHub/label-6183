@@ -114,7 +114,7 @@ export function AdoptionDetailPage() {
 
   return (
     <Stack gap="lg">
-      <Group justify="space-between">
+      <Group justify="space-between" mt="sm">
         <Anchor component={Link} to="/adoption" size="sm">
           ← 返回列表
         </Anchor>
@@ -179,14 +179,12 @@ export function AdoptionDetailPage() {
               {currentRecord.application_status}
             </Badge>
           </Group>
-          {currentRecord.remark && (
-            <Stack gap={4}>
-              <Text fw={500} c="dimmed">
-                补充说明
-              </Text>
-              <Text style={{ whiteSpace: 'pre-wrap' }}>{currentRecord.remark}</Text>
-            </Stack>
-          )}
+          <Stack gap={4}>
+            <Text fw={500} c="dimmed">
+              补充说明
+            </Text>
+            <Text style={{ whiteSpace: 'pre-wrap' }}>{currentRecord.remark || '无'}</Text>
+          </Stack>
           {currentRecord.created_at && (
             <Text size="xs" c="dimmed" mt="md">
               创建时间：{currentRecord.created_at}

@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  ActionIcon,
   Alert,
   Badge,
   Button,
@@ -28,9 +27,15 @@ const statusColors: Record<string, string> = {
   '已拒绝': 'red',
 };
 
+const statusOptions = [
+  { value: '待审核', label: '待审核' },
+  { value: '已通过', label: '已通过' },
+  { value: '已拒绝', label: '已拒绝' },
+];
+
 /** 领养意向列表页 */
 export function AdoptionListPage() {
-  const { records, listLoading, error, fetchRecords, createRecord, deleteRecord, clearError } =
+  const { records, listLoading, error, fetchRecords, createRecord, updateRecord, clearError } =
     useAdoptionStore();
   const [opened, { open, close }] = useDisclosure(false);
   const [form, setForm] = useState({
@@ -38,10 +43,10 @@ export function AdoptionListPage() {
     phone: '',
     cat_nickname: '',
     application_date: new Date(),
-    application_status: '待审核',
     remark: '',
   });
   const [submitting, setSubmitting] = useState(false);
+  const [statusLoadingId, setStatusLoadingId] = useState<number | null>(null);
 
   useEffect(() => {
     fetchRecords();
@@ -56,7 +61,7 @@ export function AdoptionListPage() {
         phone: form.phone,
         cat_nickname: form.cat_nickname,
         application_date: dayjs(form.application_date).format('YYYY-MM-DD'),
-        application_status: form.application_status,
+        application_status: '待审核',
         remark: form.remark || null,
       });
       setForm({
@@ -64,7 +69,6 @@ export function AdoptionListPage() {
         phone: '',
         cat_nickname: '',
         application_date: new Date(),
-        application_status: '待审核',
         remark: '',
       });
       close();
@@ -73,9 +77,14 @@ export function AdoptionListPage() {
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (!window.confirm('确定删除这条领养意向？')) return;
-    await deleteRecord(id);
+  const handleStatusChange = async (id: number, newStatus: string | null) => {
+    if (!newStatus) return;
+    setStatusLoadingId(id);
+    try {
+      await updateRecord(id, { application_status: newStatus });
+    } finally {
+      setStatusLoadingId(null);
+    }
   };
 
   if (listLoading && records.length === 0) {
@@ -111,9 +120,25 @@ export function AdoptionListPage() {
                 <Text fw={700} size="lg" component={Link} to={`/adoption/${r.id}`} c="orange">
                   {r.applicant_name}
                 </Text>
-                <Badge color={statusColors[r.application_status] || 'gray'} variant="light">
-                  {r.application_status}
-                </Badge>
+                <Select
+                  value={r.application_status}
+                  onChange={(v) => handleStatusChange(r.id, v)}
+                  data={statusOptions}
+                  size="xs"
+                  w={100}
+                  allowDeselect={false}
+                  disabled={statusLoadingId === r.id}
+                  leftSection={
+                    <Badge
+                      color={statusColors[r.application_status] || 'gray'}
+                      variant="light"
+                      size="xs"
+                      style={{ pointerEvents: 'none' }}
+                    >
+                      ●
+                    </Badge>
+                  }
+                />
               </Group>
               <Stack gap={4}>
                 <Text size="sm">
@@ -143,18 +168,10 @@ export function AdoptionListPage() {
                   </Text>
                 )}
               </Stack>
-              <Group mt="md" justify="space-between">
+              <Group mt="md" justify="flex-start">
                 <Button component={Link} to={`/adoption/${r.id}`} variant="light" size="xs">
                   查看详情
                 </Button>
-                <ActionIcon
-                  color="red"
-                  variant="subtle"
-                  onClick={() => handleDelete(r.id)}
-                  aria-label="删除"
-                >
-                  ✕
-                </ActionIcon>
               </Group>
             </Card>
           ))}
@@ -190,16 +207,6 @@ export function AdoptionListPage() {
             onChange={(v) => setForm({ ...form, application_date: v ?? new Date() })}
             valueFormat="YYYY-MM-DD"
             required
-          />
-          <Select
-            label="申请状态"
-            value={form.application_status}
-            onChange={(v) => setForm({ ...form, application_status: v ?? '待审核' })}
-            data={[
-              { value: '待审核', label: '待审核' },
-              { value: '已通过', label: '已通过' },
-              { value: '已拒绝', label: '已拒绝' },
-            ]}
           />
           <Textarea
             label="补充说明"
