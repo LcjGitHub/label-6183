@@ -96,6 +96,18 @@ export function initSchema() {
       created_at TEXT DEFAULT (datetime('now'))
     );
   `);
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS cat_feeding_records (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      cat_nickname TEXT NOT NULL,
+      feeding_date TEXT NOT NULL,
+      food_type TEXT NOT NULL,
+      quantity TEXT NOT NULL,
+      remark TEXT,
+      created_at TEXT DEFAULT (datetime('now'))
+    );
+  `);
 }
 
 export default db;

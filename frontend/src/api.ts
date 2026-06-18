@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { FeedingRecord, HealthFollowup, CatSighting, AdoptionIntention, VolunteerSchedule } from './types';
+import type { FeedingRecord, CatFeedingRecord, HealthFollowup, CatSighting, AdoptionIntention, VolunteerSchedule } from './types';
 
 const api = axios.create({
   baseURL: '/api',
@@ -37,6 +37,32 @@ export async function updateRecord(
 /** 删除投喂记录 */
 export async function deleteRecord(id: number): Promise<void> {
   await api.delete(`/feeding/${id}`);
+}
+
+/** 获取猫咪投喂记录列表 */
+export async function fetchCatFeedingRecords(catNickname?: string): Promise<CatFeedingRecord[]> {
+  const params = catNickname ? { cat_nickname: catNickname } : {};
+  const { data } = await api.get<CatFeedingRecord[]>('/cat-feeding', { params });
+  return data;
+}
+
+/** 获取单条猫咪投喂记录 */
+export async function fetchCatFeedingRecord(id: number): Promise<CatFeedingRecord> {
+  const { data } = await api.get<CatFeedingRecord>(`/cat-feeding/${id}`);
+  return data;
+}
+
+/** 新建猫咪投喂记录 */
+export async function createCatFeedingRecord(
+  payload: Omit<CatFeedingRecord, 'id' | 'created_at'>
+): Promise<CatFeedingRecord> {
+  const { data } = await api.post<CatFeedingRecord>('/cat-feeding', payload);
+  return data;
+}
+
+/** 删除猫咪投喂记录 */
+export async function deleteCatFeedingRecord(id: number): Promise<void> {
+  await api.delete(`/cat-feeding/${id}`);
 }
 
 /** 获取所有健康随访记录 */

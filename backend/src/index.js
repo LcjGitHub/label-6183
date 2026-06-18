@@ -3,6 +3,7 @@ import cors from 'cors';
 import { initSchema } from './db.js';
 import { seedIfEmpty } from './seed.js';
 import feedingRouter from './routes/feeding.js';
+import catFeedingRouter from './routes/catFeeding.js';
 import healthFollowupRouter from './routes/healthFollowup.js';
 import catSightingRouter from './routes/catSighting.js';
 import adoptionRouter from './routes/adoption.js';
@@ -18,6 +19,7 @@ initSchema();
 seedIfEmpty();
 
 app.use('/api/feeding', feedingRouter);
+app.use('/api/cat-feeding', catFeedingRouter);
 app.use('/api/health-followup', healthFollowupRouter);
 app.use('/api/cat-sightings', catSightingRouter);
 app.use('/api/adoption', adoptionRouter);

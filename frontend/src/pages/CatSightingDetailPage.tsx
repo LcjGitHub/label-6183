@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
+  ActionIcon,
   Alert,
   Anchor,
+  Badge,
   Button,
   Card,
   Group,
@@ -15,10 +17,10 @@ import {
   Textarea,
   Title,
 } from '@mantine/core';
-import { DateTimePicker } from '@mantine/dates';
+import { DateInput, DateTimePicker } from '@mantine/dates';
 import { useDisclosure } from '@mantine/hooks';
 import dayjs from 'dayjs';
-import { useCatSightingStore } from '../store';
+import { useCatSightingStore, useCatFeedingStore } from '../store';
 
 function InlineMap({ latitude, longitude }: { latitude: number; longitude: number }) {
   const mapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${(longitude - 0.005).toFixed(6)}%2C${(latitude - 0.003).toFixed(6)}%2C${(longitude + 0.005).toFixed(6)}%2C${(latitude + 0.003).toFixed(6)}&layer=mapnik&marker=${latitude}%2C${longitude}`;
@@ -63,6 +65,13 @@ export function CatSightingDetailPage() {
     deleteRecord,
     clearError,
   } = useCatSightingStore();
+  const {
+    records: feedingRecords,
+    listLoading: feedingListLoading,
+    fetchRecords: fetchFeedingRecords,
+    createRecord: createFeedingRecord,
+    deleteRecord: deleteFeedingRecord,
+  } = useCatFeedingStore();
 
   const [editOpened, { open: openEdit, close: closeEdit }] = useDisclosure(false);
   const [form, setForm] = useState<{
@@ -83,9 +92,24 @@ export function CatSightingDetailPage() {
   const [submitting, setSubmitting] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
 
+  const [feedingOpened, { open: openFeeding, close: closeFeeding }] = useDisclosure(false);
+  const [feedingForm, setFeedingForm] = useState({
+    feeding_date: new Date(),
+    food_type: '',
+    quantity: '',
+    remark: '',
+  });
+  const [feedingSubmitting, setFeedingSubmitting] = useState(false);
+
   useEffect(() => {
     if (recordId) fetchRecord(recordId);
   }, [recordId, fetchRecord]);
+
+  useEffect(() => {
+    if (currentRecord) {
+      fetchFeedingRecords(currentRecord.cat_nickname);
+    }
+  }, [currentRecord, fetchFeedingRecords]);
 
   useEffect(() => {
     if (currentRecord) {
@@ -136,6 +160,34 @@ export function CatSightingDetailPage() {
     if (!window.confirm('确定删除这条目击标注？')) return;
     await deleteRecord(recordId);
     navigate('/sightings');
+  };
+
+  const handleCreateFeeding = async () => {
+    if (!currentRecord || !feedingForm.food_type || !feedingForm.quantity) return;
+    setFeedingSubmitting(true);
+    try {
+      await createFeedingRecord({
+        cat_nickname: currentRecord.cat_nickname,
+        feeding_date: dayjs(feedingForm.feeding_date).format('YYYY-MM-DD'),
+        food_type: feedingForm.food_type,
+        quantity: feedingForm.quantity,
+        remark: feedingForm.remark || null,
+      });
+      setFeedingForm({
+        feeding_date: new Date(),
+        food_type: '',
+        quantity: '',
+        remark: '',
+      });
+      closeFeeding();
+    } finally {
+      setFeedingSubmitting(false);
+    }
+  };
+
+  const handleDeleteFeeding = async (id: number) => {
+    if (!window.confirm('确定删除这条投喂记录？')) return;
+    await deleteFeedingRecord(id);
   };
 
   if (detailLoading) {
@@ -269,6 +321,66 @@ export function CatSightingDetailPage() {
         </Stack>
       </Card>
 
+      <Card shadow="sm" padding="lg" radius="md" withBorder>
+        <Group justify="space-between" mb="md">
+          <Group gap="xs">
+            <Title order={3}>🍽️ 投喂记录</Title>
+            <Badge variant="light" color="orange">
+              共 {feedingRecords.length} 条
+            </Badge>
+          </Group>
+          <Button size="sm" onClick={openFeeding}>
+            + 新增投喂
+          </Button>
+        </Group>
+        {feedingListLoading ? (
+          <Group justify="center" py="md">
+            <Loader size="sm" />
+          </Group>
+        ) : feedingRecords.length === 0 ? (
+          <Text c="dimmed" size="sm" ta="center" py="md">
+            暂无投喂记录，点击「新增投喂」开始记录
+          </Text>
+        ) : (
+          <Stack gap="sm">
+            {feedingRecords.map((r) => (
+              <Card key={r.id} withBorder padding="sm" radius="sm">
+                <Group justify="space-between" mb={4}>
+                  <Group gap="xs">
+                    <Text fw={600} size="sm">
+                      {r.feeding_date}
+                    </Text>
+                    <Badge variant="light" size="xs">
+                      {r.food_type}
+                    </Badge>
+                  </Group>
+                  <ActionIcon
+                    color="red"
+                    variant="subtle"
+                    size="sm"
+                    onClick={() => handleDeleteFeeding(r.id)}
+                    aria-label="删除投喂记录"
+                  >
+                    ✕
+                  </ActionIcon>
+                </Group>
+                <Group>
+                  <Text size="sm" c="dimmed">
+                    投喂量：
+                  </Text>
+                  <Text size="sm">{r.quantity}</Text>
+                </Group>
+                {r.remark && (
+                  <Text size="sm" c="dimmed" mt={4} lineClamp={2}>
+                    备注：{r.remark}
+                  </Text>
+                )}
+              </Card>
+            ))}
+          </Stack>
+        )}
+      </Card>
+
       <Modal opened={editOpened} onClose={closeEdit} title="编辑目击标注" centered>
         <Stack>
           {validationError && (
@@ -321,6 +433,46 @@ export function CatSightingDetailPage() {
           <Button
             onClick={handleUpdate}
             loading={submitting}
+          >
+            保存
+          </Button>
+        </Stack>
+      </Modal>
+
+      <Modal opened={feedingOpened} onClose={closeFeeding} title="新增投喂记录" centered>
+        <Stack>
+          <DateInput
+            label="投喂日期"
+            value={feedingForm.feeding_date}
+            onChange={(v) => setFeedingForm({ ...feedingForm, feeding_date: v ?? new Date() })}
+            valueFormat="YYYY-MM-DD"
+            required
+          />
+          <TextInput
+            label="食物类型"
+            placeholder="如：伟嘉成猫粮、自制猫饭等"
+            value={feedingForm.food_type}
+            onChange={(e) => setFeedingForm({ ...feedingForm, food_type: e.target.value })}
+            required
+          />
+          <TextInput
+            label="投喂量"
+            placeholder="如：约 80 克、1 袋（85 克）等"
+            value={feedingForm.quantity}
+            onChange={(e) => setFeedingForm({ ...feedingForm, quantity: e.target.value })}
+            required
+          />
+          <Textarea
+            label="备注"
+            placeholder="记录特别情况（选填）"
+            value={feedingForm.remark}
+            onChange={(e) => setFeedingForm({ ...feedingForm, remark: e.target.value })}
+            minRows={2}
+          />
+          <Button
+            onClick={handleCreateFeeding}
+            loading={feedingSubmitting}
+            disabled={!feedingForm.food_type || !feedingForm.quantity}
           >
             保存
           </Button>

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { FeedingRecord, HealthFollowup, CatSighting, AdoptionIntention, VolunteerSchedule } from './types';
+import type { FeedingRecord, CatFeedingRecord, HealthFollowup, CatSighting, AdoptionIntention, VolunteerSchedule } from './types';
 import * as api from './api';
 
 interface FeedingStore {
@@ -69,6 +69,51 @@ export const useFeedingStore = create<FeedingStore>((set, get) => ({
     set({
       records: get().records.filter((r) => r.id !== id),
       currentRecord: get().currentRecord?.id === id ? null : get().currentRecord,
+    });
+  },
+
+  clearError: () => set({ error: null }),
+}));
+
+interface CatFeedingStore {
+  records: CatFeedingRecord[];
+  listLoading: boolean;
+  error: string | null;
+  fetchRecords: (catNickname?: string) => Promise<void>;
+  createRecord: (payload: Omit<CatFeedingRecord, 'id' | 'created_at'>) => Promise<CatFeedingRecord>;
+  deleteRecord: (id: number) => Promise<void>;
+  clearError: () => void;
+}
+
+export const useCatFeedingStore = create<CatFeedingStore>((set, get) => ({
+  records: [],
+  listLoading: false,
+  error: null,
+
+  fetchRecords: async (catNickname) => {
+    set({ listLoading: true, error: null });
+    try {
+      const records = await api.fetchCatFeedingRecords(catNickname);
+      set({ records, listLoading: false });
+    } catch {
+      set({ listLoading: false, error: '加载猫咪投喂记录失败' });
+    }
+  },
+
+  createRecord: async (payload) => {
+    const record = await api.createCatFeedingRecord(payload);
+    set({
+      records: [record, ...get().records].sort(
+        (a, b) => b.feeding_date.localeCompare(a.feeding_date) || b.id - a.id
+      ),
+    });
+    return record;
+  },
+
+  deleteRecord: async (id) => {
+    await api.deleteCatFeedingRecord(id);
+    set({
+      records: get().records.filter((r) => r.id !== id),
     });
   },
 

@@ -10,6 +10,17 @@ export interface FeedingRecord {
   created_at?: string;
 }
 
+/** 猫咪投喂记录 */
+export interface CatFeedingRecord {
+  id: number;
+  cat_nickname: string;
+  feeding_date: string;
+  food_type: string;
+  quantity: string;
+  remark: string | null;
+  created_at?: string;
+}
+
 /** 健康随访记录 */
 export interface HealthFollowup {
   id: number;

@@ -301,10 +301,121 @@ function seedVolunteerSchedules() {
   console.log('已写入 seed 数据：5 条志愿者排班示例');
 }
 
+function seedCatFeedingRecords() {
+  const count = db.prepare('SELECT COUNT(*) AS n FROM cat_feeding_records').get().n;
+  if (count > 0) return;
+
+  const insertRecord = db.prepare(`
+    INSERT INTO cat_feeding_records (cat_nickname, feeding_date, food_type, quantity, remark)
+    VALUES (?, ?, ?, ?, ?)
+  `);
+
+  const records = [
+    {
+      cat_nickname: '橘座',
+      feeding_date: '2026-06-10',
+      food_type: '伟嘉成猫粮',
+      quantity: '约 80 克',
+      remark: '吃得很快，吃完还围着人转要吃的',
+    },
+    {
+      cat_nickname: '橘座',
+      feeding_date: '2026-06-12',
+      food_type: '皇家室内猫粮',
+      quantity: '约 100 克',
+      remark: '食欲很好，全部吃完了',
+    },
+    {
+      cat_nickname: '橘座',
+      feeding_date: '2026-06-15',
+      food_type: '自制猫饭（鸡胸肉+南瓜）',
+      quantity: '约 120 克',
+      remark: '很喜欢吃，一扫而光',
+    },
+    {
+      cat_nickname: '橘座',
+      feeding_date: '2026-06-17',
+      food_type: '妙鲜包（金枪鱼味）',
+      quantity: '1 袋（85 克）',
+      remark: null,
+    },
+    {
+      cat_nickname: '小黑',
+      feeding_date: '2026-06-11',
+      food_type: '伟嘉成猫粮',
+      quantity: '约 60 克',
+      remark: '比较警惕，放好粮后退到远处才过来吃',
+    },
+    {
+      cat_nickname: '小黑',
+      feeding_date: '2026-06-14',
+      food_type: '皇家室内猫粮',
+      quantity: '约 70 克',
+      remark: '比上次胆子大了些，等了一会儿就过来吃了',
+    },
+    {
+      cat_nickname: '三花',
+      feeding_date: '2026-06-10',
+      food_type: '妙鲜包（鸡肉味）',
+      quantity: '1 袋（85 克）',
+      remark: '很挑食，只吃了一半',
+    },
+    {
+      cat_nickname: '三花',
+      feeding_date: '2026-06-13',
+      food_type: '皇家室内猫粮',
+      quantity: '约 60 克',
+      remark: '慢悠悠地吃，吃了好久',
+    },
+    {
+      cat_nickname: '三花',
+      feeding_date: '2026-06-16',
+      food_type: '自制猫饭',
+      quantity: '约 80 克',
+      remark: '闻了闻就走开了，不爱吃',
+    },
+    {
+      cat_nickname: '小白',
+      feeding_date: '2026-06-12',
+      food_type: '伟嘉幼猫粮',
+      quantity: '约 50 克',
+      remark: '瘦瘦的，看起来很饿',
+    },
+    {
+      cat_nickname: '小白',
+      feeding_date: '2026-06-15',
+      food_type: '皇家幼猫粮',
+      quantity: '约 60 克',
+      remark: '吃得很乖，吃完还舔了会儿毛',
+    },
+    {
+      cat_nickname: '小白',
+      feeding_date: '2026-06-17',
+      food_type: '妙鲜包（金枪鱼味）',
+      quantity: '1 袋（85 克）',
+      remark: '全部吃完，精神状态不错',
+    },
+  ];
+
+  db.exec('BEGIN');
+  try {
+    for (const r of records) {
+      insertRecord.run(r.cat_nickname, r.feeding_date, r.food_type, r.quantity, r.remark);
+    }
+    db.exec('COMMIT');
+  } catch (err) {
+    db.exec('ROLLBACK');
+    throw err;
+  }
+
+  console.log('已写入 seed 数据：12 条猫咪投喂记录示例');
+}
+
 export function seedIfEmpty() {
   seedFeedingRecords();
   seedHealthFollowups();
   seedCatSightings();
   seedAdoptionIntentions();
   seedVolunteerSchedules();
+  seedCatFeedingRecords();
 }
