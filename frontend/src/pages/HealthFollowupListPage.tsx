@@ -34,7 +34,7 @@ export function HealthFollowupListPage() {
   const [form, setForm] = useState({
     cat_nickname: '',
     followup_date: new Date(),
-    weight: 0,
+    weight: undefined as number | undefined,
     mental_status: '活泼好动',
     went_doctor: false,
     remark: '',
@@ -46,7 +46,7 @@ export function HealthFollowupListPage() {
   }, [fetchRecords]);
 
   const handleCreate = async () => {
-    if (!form.cat_nickname || !form.followup_date || !form.weight || !form.mental_status) return;
+    if (!form.cat_nickname || !form.followup_date || form.weight === undefined || !form.mental_status) return;
     setSubmitting(true);
     try {
       await createRecord({
@@ -60,7 +60,7 @@ export function HealthFollowupListPage() {
       setForm({
         cat_nickname: '',
         followup_date: new Date(),
-        weight: 0,
+        weight: undefined,
         mental_status: '活泼好动',
         went_doctor: false,
         remark: '',
@@ -179,7 +179,7 @@ export function HealthFollowupListPage() {
             label="体重（kg）"
             placeholder="如：4.5"
             value={form.weight}
-            onChange={(v) => setForm({ ...form, weight: Number(v) })}
+            onChange={(v) => setForm({ ...form, weight: v === '' ? undefined : Number(v) })}
             min={0}
             step={0.1}
             required
@@ -206,7 +206,7 @@ export function HealthFollowupListPage() {
           <Button
             onClick={handleCreate}
             loading={submitting}
-            disabled={!form.cat_nickname || !form.weight || !form.mental_status}
+            disabled={!form.cat_nickname || form.weight === undefined || !form.mental_status}
           >
             保存
           </Button>

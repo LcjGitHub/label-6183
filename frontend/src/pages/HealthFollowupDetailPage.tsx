@@ -41,10 +41,11 @@ export function HealthFollowupDetailPage() {
   } = useHealthFollowupStore();
 
   const [editOpened, { open: openEdit, close: closeEdit }] = useDisclosure(false);
+  const [requested, setRequested] = useState(false);
   const [form, setForm] = useState({
     cat_nickname: '',
     followup_date: new Date(),
-    weight: 0,
+    weight: undefined as number | undefined,
     mental_status: '活泼好动',
     went_doctor: false,
     remark: '',
@@ -52,7 +53,10 @@ export function HealthFollowupDetailPage() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (recordId) fetchRecord(recordId);
+    if (recordId) {
+      fetchRecord(recordId);
+      setRequested(true);
+    }
   }, [recordId, fetchRecord]);
 
   useEffect(() => {
@@ -69,6 +73,7 @@ export function HealthFollowupDetailPage() {
   }, [currentRecord]);
 
   const handleUpdate = async () => {
+    if (form.weight === undefined) return;
     setSubmitting(true);
     try {
       await updateRecord(recordId, {
@@ -91,7 +96,7 @@ export function HealthFollowupDetailPage() {
     navigate('/followup');
   };
 
-  if (detailLoading) {
+  if (!requested || detailLoading) {
     return (
       <Group justify="center" py="xl">
         <Loader />
@@ -169,14 +174,12 @@ export function HealthFollowupDetailPage() {
             </Text>
             <Text>{currentRecord.went_doctor ? '是' : '否'}</Text>
           </Group>
-          {currentRecord.remark && (
-            <Stack gap={4}>
-              <Text fw={500} c="dimmed">
-                备注
-              </Text>
-              <Text style={{ whiteSpace: 'pre-wrap' }}>{currentRecord.remark}</Text>
-            </Stack>
-          )}
+          <Stack gap={4}>
+            <Text fw={500} c="dimmed">
+              备注
+            </Text>
+            <Text style={{ whiteSpace: 'pre-wrap' }}>{currentRecord.remark || '无'}</Text>
+          </Stack>
           {currentRecord.created_at && (
             <Text size="xs" c="dimmed" mt="md">
               创建时间：{currentRecord.created_at}
@@ -203,7 +206,7 @@ export function HealthFollowupDetailPage() {
           <NumberInput
             label="体重（kg）"
             value={form.weight}
-            onChange={(v) => setForm({ ...form, weight: Number(v) })}
+            onChange={(v) => setForm({ ...form, weight: v === '' ? undefined : Number(v) })}
             min={0}
             step={0.1}
             required
@@ -229,7 +232,7 @@ export function HealthFollowupDetailPage() {
           <Button
             onClick={handleUpdate}
             loading={submitting}
-            disabled={!form.cat_nickname || !form.weight || !form.mental_status}
+            disabled={!form.cat_nickname || form.weight === undefined || !form.mental_status}
           >
             保存
           </Button>
