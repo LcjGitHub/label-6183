@@ -1,9 +1,6 @@
 import db from './db.js';
 
-/**
- * 若数据库为空则写入 4 条投喂记录示例数据
- */
-export function seedIfEmpty() {
+function seedFeedingRecords() {
   const count = db.prepare('SELECT COUNT(*) AS n FROM feeding_records').get().n;
   if (count > 0) return;
 
@@ -55,4 +52,78 @@ export function seedIfEmpty() {
   }
 
   console.log('已写入 seed 数据：4 条投喂记录示例');
+}
+
+function seedHealthFollowups() {
+  const count = db.prepare('SELECT COUNT(*) AS n FROM health_followups').get().n;
+  if (count > 0) return;
+
+  const insertRecord = db.prepare(`
+    INSERT INTO health_followups (cat_nickname, followup_date, weight, mental_status, went_doctor, remark)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `);
+
+  const records = [
+    {
+      cat_nickname: '橘胖子',
+      followup_date: '2026-06-08',
+      weight: 5.2,
+      mental_status: '活泼好动',
+      went_doctor: 0,
+      remark: '食欲很好，毛色光亮，体重较上月增加 0.3kg',
+    },
+    {
+      cat_nickname: '黑炭',
+      followup_date: '2026-06-10',
+      weight: 3.8,
+      mental_status: '精神一般',
+      went_doctor: 1,
+      remark: '有些打喷嚏，带去宠物医院检查，轻微感冒，开了感冒药，连续吃三天',
+    },
+    {
+      cat_nickname: '花花',
+      followup_date: '2026-06-12',
+      weight: 4.1,
+      mental_status: '活泼好动',
+      went_doctor: 0,
+      remark: '刚做完绝育手术一周，伤口恢复良好，精神状态不错',
+    },
+    {
+      cat_nickname: '小白',
+      followup_date: '2026-06-14',
+      weight: 2.9,
+      mental_status: '萎靡不振',
+      went_doctor: 1,
+      remark: '疑似肠胃炎，送医输液治疗，建议住院观察两天',
+    },
+    {
+      cat_nickname: '橘胖子',
+      followup_date: '2026-06-16',
+      weight: 5.4,
+      mental_status: '活泼好动',
+      went_doctor: 0,
+      remark: '体重继续增长，需要控制饮食，增加运动量',
+    },
+  ];
+
+  db.exec('BEGIN');
+  try {
+    for (const r of records) {
+      insertRecord.run(r.cat_nickname, r.followup_date, r.weight, r.mental_status, r.went_doctor, r.remark);
+    }
+    db.exec('COMMIT');
+  } catch (err) {
+    db.exec('ROLLBACK');
+    throw err;
+  }
+
+  console.log('已写入 seed 数据：5 条健康随访记录示例');
+}
+
+/**
+ * 若数据库为空则写入种子示例数据
+ */
+export function seedIfEmpty() {
+  seedFeedingRecords();
+  seedHealthFollowups();
 }

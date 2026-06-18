@@ -8,3 +8,15 @@ export interface FeedingRecord {
   remark: string | null;
   created_at?: string;
 }
+
+/** 健康随访记录 */
+export interface HealthFollowup {
+  id: number;
+  cat_nickname: string;
+  followup_date: string;
+  weight: number;
+  mental_status: string;
+  went_doctor: number;
+  remark: string | null;
+  created_at?: string;
+}

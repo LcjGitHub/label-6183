@@ -3,6 +3,7 @@ import cors from 'cors';
 import { initSchema } from './db.js';
 import { seedIfEmpty } from './seed.js';
 import feedingRouter from './routes/feeding.js';
+import healthFollowupRouter from './routes/healthFollowup.js';
 
 const PORT = 5000;
 const app = express();
@@ -14,6 +15,7 @@ initSchema();
 seedIfEmpty();
 
 app.use('/api/feeding', feedingRouter);
+app.use('/api/health-followup', healthFollowupRouter);
 
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok' });

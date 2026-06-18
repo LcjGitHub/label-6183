@@ -30,6 +30,19 @@ export function initSchema() {
       created_at TEXT DEFAULT (datetime('now'))
     );
   `);
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS health_followups (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      cat_nickname TEXT NOT NULL,
+      followup_date TEXT NOT NULL,
+      weight REAL NOT NULL,
+      mental_status TEXT NOT NULL,
+      went_doctor INTEGER NOT NULL DEFAULT 0,
+      remark TEXT,
+      created_at TEXT DEFAULT (datetime('now'))
+    );
+  `);
 }
 
 export default db;
