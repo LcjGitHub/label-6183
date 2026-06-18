@@ -20,3 +20,14 @@ export interface HealthFollowup {
   remark: string | null;
   created_at?: string;
 }
+
+/** 流浪猫目击标注 */
+export interface CatSighting {
+  id: number;
+  cat_nickname: string;
+  latitude: number;
+  longitude: number;
+  sighting_time: string;
+  location_description: string;
+  created_at?: string;
+}

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { FeedingRecord, HealthFollowup } from './types';
+import type { FeedingRecord, HealthFollowup, CatSighting } from './types';
 
 const api = axios.create({
   baseURL: '/api',
@@ -71,4 +71,38 @@ export async function updateHealthFollowup(
 /** 删除健康随访记录 */
 export async function deleteHealthFollowup(id: number): Promise<void> {
   await api.delete(`/health-followup/${id}`);
+}
+
+/** 获取所有目击标注 */
+export async function fetchCatSightings(): Promise<CatSighting[]> {
+  const { data } = await api.get<CatSighting[]>('/cat-sightings');
+  return data;
+}
+
+/** 获取单条目击标注详情 */
+export async function fetchCatSighting(id: number): Promise<CatSighting> {
+  const { data } = await api.get<CatSighting>(`/cat-sightings/${id}`);
+  return data;
+}
+
+/** 新建目击标注 */
+export async function createCatSighting(
+  payload: Omit<CatSighting, 'id' | 'created_at'>
+): Promise<CatSighting> {
+  const { data } = await api.post<CatSighting>('/cat-sightings', payload);
+  return data;
+}
+
+/** 更新目击标注 */
+export async function updateCatSighting(
+  id: number,
+  payload: Partial<Omit<CatSighting, 'id' | 'created_at'>>
+): Promise<CatSighting> {
+  const { data } = await api.put<CatSighting>(`/cat-sightings/${id}`, payload);
+  return data;
+}
+
+/** 删除目击标注 */
+export async function deleteCatSighting(id: number): Promise<void> {
+  await api.delete(`/cat-sightings/${id}`);
 }

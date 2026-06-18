@@ -5,7 +5,15 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 export function AppLayout() {
   const location = useLocation();
   const navigate = useNavigate();
-  const activeTab = location.pathname.startsWith('/followup') ? 'followup' : 'feeding';
+  let activeTab = 'feeding';
+  if (location.pathname.startsWith('/followup')) activeTab = 'followup';
+  else if (location.pathname.startsWith('/sightings')) activeTab = 'sightings';
+
+  const handleTabChange = (v: string | null) => {
+    if (v === 'followup') navigate('/followup');
+    else if (v === 'sightings') navigate('/sightings');
+    else navigate('/feeding');
+  };
 
   return (
     <AppShell header={{ height: 110 }} padding="md">
@@ -14,13 +22,14 @@ export function AppLayout() {
           <Group h={60} justify="space-between">
             <Title order={3}>🐱 社区流浪猫管理系统</Title>
             <Text size="sm" c="dimmed">
-              记录每一次爱心投喂与健康随访
+              记录每一次爱心投喂、健康随访与目击标注
             </Text>
           </Group>
-          <Tabs value={activeTab} onChange={(v) => navigate(v === 'followup' ? '/followup' : '/feeding')}>
+          <Tabs value={activeTab} onChange={handleTabChange}>
             <Tabs.List>
               <Tabs.Tab value="feeding">🍽️ 投喂记录</Tabs.Tab>
               <Tabs.Tab value="followup">🏥 健康随访</Tabs.Tab>
+              <Tabs.Tab value="sightings">🗺️ 目击地图</Tabs.Tab>
             </Tabs.List>
           </Tabs>
         </Container>

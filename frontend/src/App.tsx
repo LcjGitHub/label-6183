@@ -9,6 +9,8 @@ import { FeedingListPage } from './pages/FeedingListPage';
 import { FeedingDetailPage } from './pages/FeedingDetailPage';
 import { HealthFollowupListPage } from './pages/HealthFollowupListPage';
 import { HealthFollowupDetailPage } from './pages/HealthFollowupDetailPage';
+import { CatSightingListPage } from './pages/CatSightingListPage';
+import { CatSightingDetailPage } from './pages/CatSightingDetailPage';
 
 const theme = createTheme({
   primaryColor: 'orange',
@@ -22,11 +24,13 @@ export function App() {
         <BrowserRouter>
           <Routes>
             <Route element={<AppLayout />}>
-              <Route path="/" element={<Navigate to="/feeding" replace />} />
+              <Route path="/" element={<Navigate to="/sightings" replace />} />
               <Route path="/feeding" element={<FeedingListPage />} />
               <Route path="/feeding/:id" element={<FeedingDetailPage />} />
               <Route path="/followup" element={<HealthFollowupListPage />} />
               <Route path="/followup/:id" element={<HealthFollowupDetailPage />} />
+              <Route path="/sightings" element={<CatSightingListPage />} />
+              <Route path="/sightings/:id" element={<CatSightingDetailPage />} />
             </Route>
           </Routes>
         </BrowserRouter>

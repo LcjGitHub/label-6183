@@ -43,6 +43,18 @@ export function initSchema() {
       created_at TEXT DEFAULT (datetime('now'))
     );
   `);
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS cat_sightings (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      cat_nickname TEXT NOT NULL,
+      latitude REAL NOT NULL,
+      longitude REAL NOT NULL,
+      sighting_time TEXT NOT NULL,
+      location_description TEXT NOT NULL,
+      created_at TEXT DEFAULT (datetime('now'))
+    );
+  `);
 }
 
 export default db;
