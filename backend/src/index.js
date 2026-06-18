@@ -5,6 +5,7 @@ import { seedIfEmpty } from './seed.js';
 import feedingRouter from './routes/feeding.js';
 import healthFollowupRouter from './routes/healthFollowup.js';
 import catSightingRouter from './routes/catSighting.js';
+import adoptionRouter from './routes/adoption.js';
 
 const PORT = 5000;
 const app = express();
@@ -18,6 +19,7 @@ seedIfEmpty();
 app.use('/api/feeding', feedingRouter);
 app.use('/api/health-followup', healthFollowupRouter);
 app.use('/api/cat-sightings', catSightingRouter);
+app.use('/api/adoption', adoptionRouter);
 
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok' });

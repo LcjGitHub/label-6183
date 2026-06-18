@@ -55,6 +55,19 @@ export function initSchema() {
       created_at TEXT DEFAULT (datetime('now'))
     );
   `);
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS adoption_intentions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      applicant_name TEXT NOT NULL,
+      phone TEXT NOT NULL,
+      cat_nickname TEXT NOT NULL,
+      application_date TEXT NOT NULL,
+      application_status TEXT NOT NULL DEFAULT '待审核',
+      remark TEXT,
+      created_at TEXT DEFAULT (datetime('now'))
+    );
+  `);
 }
 
 export default db;

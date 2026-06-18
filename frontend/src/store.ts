@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { FeedingRecord, HealthFollowup, CatSighting } from './types';
+import type { FeedingRecord, HealthFollowup, CatSighting, AdoptionIntention } from './types';
 import * as api from './api';
 
 interface FeedingStore {
@@ -212,6 +212,79 @@ export const useCatSightingStore = create<CatSightingStore>((set, get) => ({
 
   deleteRecord: async (id) => {
     await api.deleteCatSighting(id);
+    set({
+      records: get().records.filter((r) => r.id !== id),
+      currentRecord: get().currentRecord?.id === id ? null : get().currentRecord,
+    });
+  },
+
+  clearError: () => set({ error: null }),
+}));
+
+interface AdoptionStore {
+  records: AdoptionIntention[];
+  currentRecord: AdoptionIntention | null;
+  listLoading: boolean;
+  detailLoading: boolean;
+  error: string | null;
+  fetchRecords: () => Promise<void>;
+  fetchRecord: (id: number) => Promise<void>;
+  createRecord: (payload: Omit<AdoptionIntention, 'id' | 'created_at'>) => Promise<AdoptionIntention>;
+  updateRecord: (
+    id: number,
+    payload: Partial<Omit<AdoptionIntention, 'id' | 'created_at'>>
+  ) => Promise<void>;
+  deleteRecord: (id: number) => Promise<void>;
+  clearError: () => void;
+}
+
+export const useAdoptionStore = create<AdoptionStore>((set, get) => ({
+  records: [],
+  currentRecord: null,
+  listLoading: false,
+  detailLoading: false,
+  error: null,
+
+  fetchRecords: async () => {
+    set({ listLoading: true, error: null });
+    try {
+      const records = await api.fetchAdoptionIntentions();
+      set({ records, listLoading: false });
+    } catch {
+      set({ listLoading: false, error: '加载领养意向列表失败' });
+    }
+  },
+
+  fetchRecord: async (id) => {
+    set({ detailLoading: true, error: null, currentRecord: null });
+    try {
+      const currentRecord = await api.fetchAdoptionIntention(id);
+      set({ currentRecord, detailLoading: false });
+    } catch {
+      set({ detailLoading: false, error: '加载领养意向详情失败' });
+    }
+  },
+
+  createRecord: async (payload) => {
+    const record = await api.createAdoptionIntention(payload);
+    set({
+      records: [record, ...get().records].sort(
+        (a, b) => b.application_date.localeCompare(a.application_date) || b.id - a.id
+      ),
+    });
+    return record;
+  },
+
+  updateRecord: async (id, payload) => {
+    const updated = await api.updateAdoptionIntention(id, payload);
+    set({
+      records: get().records.map((r) => (r.id === id ? { ...r, ...updated } : r)),
+      currentRecord: get().currentRecord?.id === id ? updated : get().currentRecord,
+    });
+  },
+
+  deleteRecord: async (id) => {
+    await api.deleteAdoptionIntention(id);
     set({
       records: get().records.filter((r) => r.id !== id),
       currentRecord: get().currentRecord?.id === id ? null : get().currentRecord,

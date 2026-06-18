@@ -31,3 +31,15 @@ export interface CatSighting {
   location_description: string;
   created_at?: string;
 }
+
+/** 领养意向登记 */
+export interface AdoptionIntention {
+  id: number;
+  applicant_name: string;
+  phone: string;
+  cat_nickname: string;
+  application_date: string;
+  application_status: string;
+  remark: string | null;
+  created_at?: string;
+}

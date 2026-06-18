@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { FeedingRecord, HealthFollowup, CatSighting } from './types';
+import type { FeedingRecord, HealthFollowup, CatSighting, AdoptionIntention } from './types';
 
 const api = axios.create({
   baseURL: '/api',
@@ -105,4 +105,38 @@ export async function updateCatSighting(
 /** 删除目击标注 */
 export async function deleteCatSighting(id: number): Promise<void> {
   await api.delete(`/cat-sightings/${id}`);
+}
+
+/** 获取所有领养意向 */
+export async function fetchAdoptionIntentions(): Promise<AdoptionIntention[]> {
+  const { data } = await api.get<AdoptionIntention[]>('/adoption');
+  return data;
+}
+
+/** 获取单条领养意向详情 */
+export async function fetchAdoptionIntention(id: number): Promise<AdoptionIntention> {
+  const { data } = await api.get<AdoptionIntention>(`/adoption/${id}`);
+  return data;
+}
+
+/** 新建领养意向 */
+export async function createAdoptionIntention(
+  payload: Omit<AdoptionIntention, 'id' | 'created_at'>
+): Promise<AdoptionIntention> {
+  const { data } = await api.post<AdoptionIntention>('/adoption', payload);
+  return data;
+}
+
+/** 更新领养意向 */
+export async function updateAdoptionIntention(
+  id: number,
+  payload: Partial<Omit<AdoptionIntention, 'id' | 'created_at'>>
+): Promise<AdoptionIntention> {
+  const { data } = await api.put<AdoptionIntention>(`/adoption/${id}`, payload);
+  return data;
+}
+
+/** 删除领养意向 */
+export async function deleteAdoptionIntention(id: number): Promise<void> {
+  await api.delete(`/adoption/${id}`);
 }

@@ -177,8 +177,59 @@ function seedCatSightings() {
   console.log('已写入 seed 数据：4 条目击标注示例');
 }
 
+function seedAdoptionIntentions() {
+  const count = db.prepare('SELECT COUNT(*) AS n FROM adoption_intentions').get().n;
+  if (count > 0) return;
+
+  const insertRecord = db.prepare(`
+    INSERT INTO adoption_intentions (applicant_name, phone, cat_nickname, application_date, application_status, remark)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `);
+
+  const records = [
+    {
+      applicant_name: '张小明',
+      phone: '13812345678',
+      cat_nickname: '橘胖子',
+      application_date: '2026-06-10',
+      application_status: '待审核',
+      remark: '家里有独立阳台，之前养过猫，有养猫经验，希望能给橘胖子一个温暖的家',
+    },
+    {
+      applicant_name: '李小红',
+      phone: '13987654321',
+      cat_nickname: '花花',
+      application_date: '2026-06-12',
+      application_status: '已通过',
+      remark: '已完成家访，居住环境良好，已预约绝育手术和疫苗接种，下周末接猫',
+    },
+    {
+      applicant_name: '王大伟',
+      phone: '13566668888',
+      cat_nickname: '黑炭',
+      application_date: '2026-06-15',
+      application_status: '已拒绝',
+      remark: '目前租住的房子不允许养宠物，建议等以后有稳定住所再申请',
+    },
+  ];
+
+  db.exec('BEGIN');
+  try {
+    for (const r of records) {
+      insertRecord.run(r.applicant_name, r.phone, r.cat_nickname, r.application_date, r.application_status, r.remark);
+    }
+    db.exec('COMMIT');
+  } catch (err) {
+    db.exec('ROLLBACK');
+    throw err;
+  }
+
+  console.log('已写入 seed 数据：3 条领养意向示例');
+}
+
 export function seedIfEmpty() {
   seedFeedingRecords();
   seedHealthFollowups();
   seedCatSightings();
+  seedAdoptionIntentions();
 }

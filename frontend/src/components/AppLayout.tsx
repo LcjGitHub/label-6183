@@ -8,10 +8,12 @@ export function AppLayout() {
   let activeTab = 'feeding';
   if (location.pathname.startsWith('/followup')) activeTab = 'followup';
   else if (location.pathname.startsWith('/sightings')) activeTab = 'sightings';
+  else if (location.pathname.startsWith('/adoption')) activeTab = 'adoption';
 
   const handleTabChange = (v: string | null) => {
     if (v === 'followup') navigate('/followup');
     else if (v === 'sightings') navigate('/sightings');
+    else if (v === 'adoption') navigate('/adoption');
     else navigate('/feeding');
   };
 
@@ -30,6 +32,7 @@ export function AppLayout() {
               <Tabs.Tab value="feeding">🍽️ 投喂记录</Tabs.Tab>
               <Tabs.Tab value="followup">🏥 健康随访</Tabs.Tab>
               <Tabs.Tab value="sightings">🗺️ 目击地图</Tabs.Tab>
+              <Tabs.Tab value="adoption">🏠 领养意向</Tabs.Tab>
             </Tabs.List>
           </Tabs>
         </Container>
