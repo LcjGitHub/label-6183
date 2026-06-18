@@ -154,7 +154,8 @@ interface CatSightingStore {
   listLoading: boolean;
   detailLoading: boolean;
   error: string | null;
-  fetchRecords: () => Promise<void>;
+  searchKeyword: string;
+  fetchRecords: (keyword?: string) => Promise<void>;
   fetchRecord: (id: number) => Promise<void>;
   createRecord: (payload: Omit<CatSighting, 'id' | 'created_at'>) => Promise<CatSighting>;
   updateRecord: (
@@ -163,6 +164,7 @@ interface CatSightingStore {
   ) => Promise<void>;
   deleteRecord: (id: number) => Promise<void>;
   clearError: () => void;
+  setSearchKeyword: (keyword: string) => void;
 }
 
 export const useCatSightingStore = create<CatSightingStore>((set, get) => ({
@@ -171,11 +173,12 @@ export const useCatSightingStore = create<CatSightingStore>((set, get) => ({
   listLoading: false,
   detailLoading: false,
   error: null,
+  searchKeyword: '',
 
-  fetchRecords: async () => {
+  fetchRecords: async (keyword) => {
     set({ listLoading: true, error: null });
     try {
-      const records = await api.fetchCatSightings();
+      const records = await api.fetchCatSightings(keyword);
       set({ records, listLoading: false });
     } catch {
       set({ listLoading: false, error: '加载目击标注列表失败' });
@@ -219,6 +222,7 @@ export const useCatSightingStore = create<CatSightingStore>((set, get) => ({
   },
 
   clearError: () => set({ error: null }),
+  setSearchKeyword: (keyword) => set({ searchKeyword: keyword }),
 }));
 
 interface AdoptionStore {

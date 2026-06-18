@@ -3,12 +3,23 @@ import db from '../db.js';
 
 const router = Router();
 
-router.get('/', (_req, res) => {
-  const records = db
-    .prepare(
-      'SELECT * FROM cat_sightings ORDER BY sighting_time DESC, id DESC'
-    )
-    .all();
+router.get('/', (req, res) => {
+  const { keyword } = req.query;
+  let records;
+  if (keyword && typeof keyword === 'string' && keyword.trim()) {
+    const searchTerm = `%${keyword.trim()}%`;
+    records = db
+      .prepare(
+        'SELECT * FROM cat_sightings WHERE cat_nickname LIKE ? OR location_description LIKE ? ORDER BY sighting_time DESC, id DESC'
+      )
+      .all(searchTerm, searchTerm);
+  } else {
+    records = db
+      .prepare(
+        'SELECT * FROM cat_sightings ORDER BY sighting_time DESC, id DESC'
+      )
+      .all();
+  }
   res.json(records);
 });
 

@@ -74,8 +74,9 @@ export async function deleteHealthFollowup(id: number): Promise<void> {
 }
 
 /** 获取所有目击标注 */
-export async function fetchCatSightings(): Promise<CatSighting[]> {
-  const { data } = await api.get<CatSighting[]>('/cat-sightings');
+export async function fetchCatSightings(keyword?: string): Promise<CatSighting[]> {
+  const params = keyword ? { keyword } : {};
+  const { data } = await api.get<CatSighting[]>('/cat-sightings', { params });
   return data;
 }
 

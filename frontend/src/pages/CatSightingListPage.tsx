@@ -23,8 +23,9 @@ import { useCatSightingStore } from '../store';
 
 /** 流浪猫目击标注列表页 */
 export function CatSightingListPage() {
-  const { records, listLoading, error, fetchRecords, createRecord, clearError } =
+  const { records, listLoading, error, fetchRecords, createRecord, clearError, searchKeyword, setSearchKeyword } =
     useCatSightingStore();
+  const [searchInput, setSearchInput] = useState(searchKeyword);
   const [opened, { open, close }] = useDisclosure(false);
   const [form, setForm] = useState<{
     cat_nickname: string;
@@ -43,8 +44,17 @@ export function CatSightingListPage() {
   const [validationError, setValidationError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchRecords();
-  }, [fetchRecords]);
+    fetchRecords(searchKeyword);
+  }, [fetchRecords, searchKeyword]);
+
+  const handleSearch = () => {
+    setSearchKeyword(searchInput.trim());
+  };
+
+  const handleClearSearch = () => {
+    setSearchInput('');
+    setSearchKeyword('');
+  };
 
   const resetForm = () => {
     setForm({
@@ -102,6 +112,27 @@ export function CatSightingListPage() {
       <Group justify="space-between">
         <Title order={2}>流浪猫目击地图</Title>
         <Button onClick={open}>新增标注</Button>
+      </Group>
+
+      <Group>
+        <TextInput
+          placeholder="输入昵称或地点搜索猫咪"
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              handleSearch();
+            }
+          }}
+          style={{ flex: 1 }}
+          leftSection={<span>🔍</span>}
+        />
+        <Button onClick={handleSearch} variant="filled">
+          搜索
+        </Button>
+        <Button onClick={handleClearSearch} variant="light">
+          清空
+        </Button>
       </Group>
 
       {error && (
