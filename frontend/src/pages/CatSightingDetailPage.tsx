@@ -83,6 +83,7 @@ export function CatSightingDetailPage() {
     sighting_time: Date;
     location_description: string;
     photo_url: string;
+    coat_color: string;
   }>({
     cat_nickname: '',
     latitude: '',
@@ -90,6 +91,7 @@ export function CatSightingDetailPage() {
     sighting_time: new Date(),
     location_description: '',
     photo_url: '',
+    coat_color: '',
   });
   const [submitting, setSubmitting] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -123,6 +125,7 @@ export function CatSightingDetailPage() {
         sighting_time: dayjs(currentRecord.sighting_time).toDate(),
         location_description: currentRecord.location_description,
         photo_url: currentRecord.photo_url ?? '',
+        coat_color: currentRecord.coat_color ?? '',
       });
     }
   }, [currentRecord]);
@@ -152,6 +155,7 @@ export function CatSightingDetailPage() {
         sighting_time: dayjs(form.sighting_time).format('YYYY-MM-DD HH:mm:ss'),
         location_description: form.location_description,
         photo_url: form.photo_url || null,
+        coat_color: form.coat_color || null,
       });
       closeEdit();
     } finally {
@@ -255,6 +259,12 @@ export function CatSightingDetailPage() {
               猫咪昵称
             </Text>
             <Text>{currentRecord.cat_nickname}</Text>
+          </Group>
+          <Group>
+            <Text w={120} fw={500} c="dimmed">
+              毛色
+            </Text>
+            <Text>{currentRecord.coat_color || '未填写'}</Text>
           </Group>
           <Group>
             <Text w={120} fw={500} c="dimmed">
@@ -407,6 +417,12 @@ export function CatSightingDetailPage() {
             value={form.cat_nickname}
             onChange={(e) => setForm({ ...form, cat_nickname: e.target.value })}
             required
+          />
+          <TextInput
+            label="毛色"
+            placeholder="如：橘色、黑色、三花色、白色"
+            value={form.coat_color}
+            onChange={(e) => setForm({ ...form, coat_color: e.target.value })}
           />
           <Group grow>
             <NumberInput

@@ -53,6 +53,7 @@ export function initSchema() {
       sighting_time TEXT NOT NULL,
       location_description TEXT NOT NULL,
       photo_url TEXT,
+      coat_color TEXT,
       created_at TEXT DEFAULT (datetime('now'))
     );
   `);
@@ -69,6 +70,13 @@ export function initSchema() {
     .get();
   if (!photoUrlColumn) {
     db.exec(`ALTER TABLE cat_sightings ADD COLUMN photo_url TEXT`);
+  }
+
+  const coatColorColumn = db
+    .prepare("SELECT name FROM pragma_table_info('cat_sightings') WHERE name = 'coat_color'")
+    .get();
+  if (!coatColorColumn) {
+    db.exec(`ALTER TABLE cat_sightings ADD COLUMN coat_color TEXT`);
   }
 
   db.exec(`

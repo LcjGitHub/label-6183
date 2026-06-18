@@ -200,7 +200,9 @@ interface CatSightingStore {
   detailLoading: boolean;
   error: string | null;
   searchKeyword: string;
-  fetchRecords: (keyword?: string) => Promise<void>;
+  coatColor: string;
+  coatColors: string[];
+  fetchRecords: (keyword?: string, coatColor?: string) => Promise<void>;
   fetchRecord: (id: number) => Promise<void>;
   createRecord: (payload: Omit<CatSighting, 'id' | 'created_at'>) => Promise<void>;
   updateRecord: (
@@ -210,6 +212,8 @@ interface CatSightingStore {
   deleteRecord: (id: number) => Promise<void>;
   clearError: () => void;
   setSearchKeyword: (keyword: string) => void;
+  setCoatColor: (color: string) => void;
+  fetchCoatColors: () => Promise<void>;
 }
 
 export const useCatSightingStore = create<CatSightingStore>((set, get) => ({
@@ -219,11 +223,13 @@ export const useCatSightingStore = create<CatSightingStore>((set, get) => ({
   detailLoading: false,
   error: null,
   searchKeyword: '',
+  coatColor: '',
+  coatColors: [],
 
-  fetchRecords: async (keyword) => {
+  fetchRecords: async (keyword, coatColor) => {
     set({ listLoading: true, error: null });
     try {
-      const records = await api.fetchCatSightings(keyword);
+      const records = await api.fetchCatSightings(keyword, coatColor);
       set({ records, listLoading: false });
     } catch {
       set({ listLoading: false, error: '加载目击标注列表失败' });
@@ -242,7 +248,7 @@ export const useCatSightingStore = create<CatSightingStore>((set, get) => ({
 
   createRecord: async (payload) => {
     await api.createCatSighting(payload);
-    await get().fetchRecords(get().searchKeyword);
+    await get().fetchRecords(get().searchKeyword, get().coatColor);
   },
 
   updateRecord: async (id, payload) => {
@@ -263,6 +269,16 @@ export const useCatSightingStore = create<CatSightingStore>((set, get) => ({
 
   clearError: () => set({ error: null }),
   setSearchKeyword: (keyword) => set({ searchKeyword: keyword }),
+  setCoatColor: (color) => set({ coatColor: color }),
+
+  fetchCoatColors: async () => {
+    try {
+      const coatColors = await api.fetchCatSightingCoatColors();
+      set({ coatColors });
+    } catch {
+      // silently fail, coat colors are optional
+    }
+  },
 }));
 
 interface AdoptionStore {

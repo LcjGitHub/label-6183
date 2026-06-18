@@ -132,8 +132,8 @@ function seedCatSightings() {
   if (count > 0) return;
 
   const insertRecord = db.prepare(`
-    INSERT INTO cat_sightings (cat_nickname, latitude, longitude, sighting_time, location_description, photo_url)
-    VALUES (?, ?, ?, ?, ?, ?)
+    INSERT INTO cat_sightings (cat_nickname, latitude, longitude, sighting_time, location_description, photo_url, coat_color)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
   `);
 
   const records = [
@@ -144,6 +144,7 @@ function seedCatSightings() {
       sighting_time: '2026-06-10 08:30:00',
       location_description: '社区南门花坛边，橘色大猫正在晒太阳',
       photo_url: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?w=800&q=80',
+      coat_color: '橘色',
     },
     {
       cat_nickname: '小黑',
@@ -152,6 +153,7 @@ function seedCatSightings() {
       sighting_time: '2026-06-12 19:15:00',
       location_description: '3号楼地下车库入口旁，黑色短毛猫躲在车底',
       photo_url: null,
+      coat_color: '黑色',
     },
     {
       cat_nickname: '三花',
@@ -160,6 +162,7 @@ function seedCatSightings() {
       sighting_time: '2026-06-14 07:00:00',
       location_description: '小区中心喷泉旁长椅下，三花猫在舔毛',
       photo_url: 'https://images.unsplash.com/photo-1533743983669-94fa5c4338ec?w=800&q=80',
+      coat_color: '三花色',
     },
     {
       cat_nickname: '小白',
@@ -168,13 +171,14 @@ function seedCatSightings() {
       sighting_time: '2026-06-16 18:45:00',
       location_description: '北门快递柜旁草地，白色长毛猫独自徘徊',
       photo_url: null,
+      coat_color: '白色',
     },
   ];
 
   db.exec('BEGIN');
   try {
     for (const r of records) {
-      insertRecord.run(r.cat_nickname, r.latitude, r.longitude, r.sighting_time, r.location_description, r.photo_url);
+      insertRecord.run(r.cat_nickname, r.latitude, r.longitude, r.sighting_time, r.location_description, r.photo_url, r.coat_color);
     }
     db.exec('COMMIT');
   } catch (err) {

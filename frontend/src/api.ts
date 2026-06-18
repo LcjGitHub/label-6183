@@ -100,9 +100,17 @@ export async function deleteHealthFollowup(id: number): Promise<void> {
 }
 
 /** 获取所有目击标注 */
-export async function fetchCatSightings(keyword?: string): Promise<CatSighting[]> {
-  const params = keyword ? { keyword } : {};
+export async function fetchCatSightings(keyword?: string, coatColor?: string): Promise<CatSighting[]> {
+  const params: Record<string, string> = {};
+  if (keyword) params.keyword = keyword;
+  if (coatColor) params.coat_color = coatColor;
   const { data } = await api.get<CatSighting[]>('/cat-sightings', { params });
+  return data;
+}
+
+/** 获取所有毛色选项 */
+export async function fetchCatSightingCoatColors(): Promise<string[]> {
+  const { data } = await api.get<string[]>('/cat-sightings/coat-colors');
   return data;
 }
 

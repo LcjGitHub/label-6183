@@ -9,6 +9,7 @@ import {
   Loader,
   Modal,
   NumberInput,
+  Select,
   SimpleGrid,
   Stack,
   Text,
@@ -23,9 +24,22 @@ import { useCatSightingStore } from '../store';
 
 /** 流浪猫目击标注列表页 */
 export function CatSightingListPage() {
-  const { records, listLoading, error, fetchRecords, createRecord, clearError, searchKeyword, setSearchKeyword } =
-    useCatSightingStore();
+  const {
+    records,
+    listLoading,
+    error,
+    fetchRecords,
+    createRecord,
+    clearError,
+    searchKeyword,
+    setSearchKeyword,
+    coatColor,
+    setCoatColor,
+    coatColors,
+    fetchCoatColors,
+  } = useCatSightingStore();
   const [searchInput, setSearchInput] = useState(searchKeyword);
+  const [coatColorValue, setCoatColorValue] = useState<string | null>(coatColor || null);
   const [opened, { open, close }] = useDisclosure(false);
   const [form, setForm] = useState<{
     cat_nickname: string;
@@ -34,6 +48,7 @@ export function CatSightingListPage() {
     sighting_time: Date;
     location_description: string;
     photo_url: string;
+    coat_color: string;
   }>({
     cat_nickname: '',
     latitude: '',
@@ -41,13 +56,18 @@ export function CatSightingListPage() {
     sighting_time: new Date(),
     location_description: '',
     photo_url: '',
+    coat_color: '',
   });
   const [submitting, setSubmitting] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchRecords(searchKeyword);
-  }, [fetchRecords, searchKeyword]);
+    fetchRecords(searchKeyword, coatColor);
+  }, [fetchRecords, searchKeyword, coatColor]);
+
+  useEffect(() => {
+    fetchCoatColors();
+  }, [fetchCoatColors]);
 
   const handleSearch = () => {
     setSearchKeyword(searchInput.trim());
@@ -58,6 +78,11 @@ export function CatSightingListPage() {
     setSearchKeyword('');
   };
 
+  const handleCoatColorChange = (value: string | null) => {
+    setCoatColorValue(value);
+    setCoatColor(value || '');
+  };
+
   const resetForm = () => {
     setForm({
       cat_nickname: '',
@@ -66,6 +91,7 @@ export function CatSightingListPage() {
       sighting_time: new Date(),
       location_description: '',
       photo_url: '',
+      coat_color: '',
     });
     setValidationError(null);
   };
@@ -95,6 +121,7 @@ export function CatSightingListPage() {
         sighting_time: dayjs(form.sighting_time).format('YYYY-MM-DD HH:mm:ss'),
         location_description: form.location_description,
         photo_url: form.photo_url || null,
+        coat_color: form.coat_color || null,
       });
       resetForm();
       close();
@@ -122,6 +149,14 @@ export function CatSightingListPage() {
             }}
             style={{ flex: 1 }}
             leftSection={<span>🔍</span>}
+          />
+          <Select
+            placeholder="选择毛色筛选"
+            data={coatColors.map((c) => ({ value: c, label: c }))}
+            value={coatColorValue}
+            onChange={handleCoatColorChange}
+            clearable
+            style={{ width: 160 }}
           />
           <Button onClick={handleSearch} variant="filled">
             搜索
@@ -157,6 +192,14 @@ export function CatSightingListPage() {
           style={{ flex: 1 }}
           leftSection={<span>🔍</span>}
         />
+        <Select
+          placeholder="选择毛色筛选"
+          data={coatColors.map((c) => ({ value: c, label: c }))}
+          value={coatColorValue}
+          onChange={handleCoatColorChange}
+          clearable
+          style={{ width: 160 }}
+        />
         <Button onClick={handleSearch} variant="filled">
           搜索
         </Button>
@@ -179,7 +222,7 @@ export function CatSightingListPage() {
 
       {records.length === 0 ? (
         <Text c="dimmed" ta="center" py="xl">
-          {searchKeyword ? '未找到匹配的目击标注' : '暂无目击标注，点击「新增标注」开始登记'}
+          {searchKeyword || coatColor ? '未找到匹配的目击标注' : '暂无目击标注，点击「新增标注」开始登记'}
         </Text>
       ) : (
         <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
@@ -228,7 +271,11 @@ export function CatSightingListPage() {
                     <Text fw={700} size="lg" component={Link} to={`/sightings/${r.id}`} c="orange">
                       {r.cat_nickname}
                     </Text>
-                    <Badge variant="light">📍 {r.latitude.toFixed(4)}, {r.longitude.toFixed(4)}</Badge>
+                    {r.coat_color && (
+                      <Badge variant="light" color="blue">
+                        {r.coat_color}
+                      </Badge>
+                    )}
                   </Group>
                   <Stack gap={4}>
                     <Text size="sm">
@@ -269,6 +316,12 @@ export function CatSightingListPage() {
             value={form.cat_nickname}
             onChange={(e) => setForm({ ...form, cat_nickname: e.target.value })}
             required
+          />
+          <TextInput
+            label="毛色"
+            placeholder="如：橘色、黑色、三花色、白色"
+            value={form.coat_color}
+            onChange={(e) => setForm({ ...form, coat_color: e.target.value })}
           />
           <Group grow>
             <NumberInput

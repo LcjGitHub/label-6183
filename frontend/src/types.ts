@@ -42,6 +42,7 @@ export interface CatSighting {
   sighting_time: string;
   location_description: string;
   photo_url: string | null;
+  coat_color: string | null;
   created_at?: string;
 }
 
