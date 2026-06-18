@@ -21,7 +21,7 @@ npm start
 
 服务地址：`http://localhost:5000`
 
-首次启动会自动创建数据库并写入示例数据（投喂记录、健康随访记录、目击标注、领养意向各若干条）。
+首次启动会自动创建数据库并写入示例数据（投喂记录、健康随访记录、目击标注、领养意向、志愿者排班各若干条）。
 
 开发时可用热重载：
 
@@ -68,6 +68,15 @@ npm run dev
 - **意向详情**：完整展示全部字段（补充说明为空时显示「无」），支持编辑所有字段（含申请状态）与删除；编辑与删除按钮顶部留白避免被固定导航栏遮挡
 - **基础 CRUD**：领养意向的增删改查（列表页仅保留查看详情入口，删除操作仅限详情页）
 
+### 👥 志愿者排班
+
+- **排班日历**：月历组件展示值班日期，对应日期格子显示当日值班人数，点击日期可筛选当日排班记录
+- **排班列表**：按日期分组展示排班记录，显示志愿者姓名、负责区域、联系电话、到岗状态、备注（备注为空时显示「无」）
+- **快捷操作**：支持直接勾选「已到岗」状态快速更新，每条记录支持编辑和删除
+- **编辑弹窗**：弹窗表单录入/编辑排班信息，字段包含志愿者姓名、值班日期、负责区域、联系电话、是否已到岗、备注
+- **日期筛选**：支持通过月历点击或日期选择器按日期筛选排班记录
+- **基础 CRUD**：志愿者排班的增删改查
+
 ## API 概览
 
 ### 流浪猫目击标注 API
@@ -109,6 +118,16 @@ npm run dev
 | POST | `/api/adoption` | 新建领养意向（默认状态为「待审核」） |
 | PUT | `/api/adoption/:id` | 更新领养意向（可单独修改申请状态） |
 | DELETE | `/api/adoption/:id` | 删除领养意向 |
+
+### 志愿者排班 API
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/volunteer-schedule` | 志愿者排班列表（支持 `?date=YYYY-MM-DD` 按日期筛选，按日期升序） |
+| GET | `/api/volunteer-schedule/:id` | 单条志愿者排班详情 |
+| POST | `/api/volunteer-schedule` | 新建志愿者排班 |
+| PUT | `/api/volunteer-schedule/:id` | 更新志愿者排班 |
+| DELETE | `/api/volunteer-schedule/:id` | 删除志愿者排班 |
 
 ## 数据字段
 
@@ -154,6 +173,17 @@ npm run dev
 | application_status | 申请状态（待审核/已通过/已拒绝），新建时默认为「待审核」 | 是 |
 | remark | 补充说明 | 否 |
 
+### 志愿者排班
+
+| 字段 | 说明 | 必填 |
+|------|------|------|
+| volunteer_name | 志愿者姓名 | 是 |
+| duty_date | 值班日期（YYYY-MM-DD） | 是 |
+| area | 负责区域 | 是 |
+| phone | 联系电话 | 是 |
+| is_arrived | 是否已到岗（0/1），默认为 0 | 是 |
+| remark | 备注 | 否 |
+
 ## 目录结构
 
 ```
@@ -161,10 +191,11 @@ npm run dev
 │   ├── data/         # feeding.db（运行时自动生成）
 │   └── src/
 │       ├── routes/
-│       │   ├── adoption.js        # 领养意向路由
-│       │   ├── catSighting.js    # 目击标注路由
-│       │   ├── feeding.js        # 投喂记录路由
-│       │   └── healthFollowup.js # 健康随访路由
+│       │   ├── adoption.js           # 领养意向路由
+│       │   ├── catSighting.js       # 目击标注路由
+│       │   ├── feeding.js           # 投喂记录路由
+│       │   ├── healthFollowup.js    # 健康随访路由
+│       │   └── volunteerSchedule.js # 志愿者排班路由
 │       ├── db.js       # 数据库初始化与表结构
 │       ├── seed.js     # 示例数据播种
 │       └── index.js    # 应用入口
@@ -180,7 +211,8 @@ npm run dev
 │       │   ├── FeedingListPage.tsx
 │       │   ├── FeedingDetailPage.tsx
 │       │   ├── HealthFollowupListPage.tsx
-│       │   └── HealthFollowupDetailPage.tsx
+│       │   ├── HealthFollowupDetailPage.tsx
+│       │   └── VolunteerScheduleListPage.tsx # 志愿者排班列表页
 │       ├── App.tsx     # 路由配置
 │       ├── api.ts      # API 请求封装
 │       ├── store.ts    # zustand 状态管理

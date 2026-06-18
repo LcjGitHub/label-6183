@@ -227,9 +227,76 @@ function seedAdoptionIntentions() {
   console.log('已写入 seed 数据：3 条领养意向示例');
 }
 
+function seedVolunteerSchedules() {
+  const count = db.prepare('SELECT COUNT(*) AS n FROM volunteer_schedules').get().n;
+  if (count > 0) return;
+
+  const insertRecord = db.prepare(`
+    INSERT INTO volunteer_schedules (volunteer_name, duty_date, area, phone, is_arrived, remark)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `);
+
+  const records = [
+    {
+      volunteer_name: '张小明',
+      duty_date: '2026-06-18',
+      area: '社区北门',
+      phone: '13812345678',
+      is_arrived: 1,
+      remark: '早班，负责北门投喂点',
+    },
+    {
+      volunteer_name: '李小红',
+      duty_date: '2026-06-18',
+      area: '中心花园',
+      phone: '13987654321',
+      is_arrived: 1,
+      remark: '下午班，检查猫咪健康状况',
+    },
+    {
+      volunteer_name: '王大伟',
+      duty_date: '2026-06-19',
+      area: '3号楼区域',
+      phone: '13566668888',
+      is_arrived: 0,
+      remark: null,
+    },
+    {
+      volunteer_name: '赵丽丽',
+      duty_date: '2026-06-19',
+      area: '南门花坛',
+      phone: '13699990000',
+      is_arrived: 0,
+      remark: '周末值班，带新志愿者熟悉环境',
+    },
+    {
+      volunteer_name: '陈小强',
+      duty_date: '2026-06-20',
+      area: '地下车库',
+      phone: '13711112222',
+      is_arrived: 0,
+      remark: null,
+    },
+  ];
+
+  db.exec('BEGIN');
+  try {
+    for (const r of records) {
+      insertRecord.run(r.volunteer_name, r.duty_date, r.area, r.phone, r.is_arrived, r.remark);
+    }
+    db.exec('COMMIT');
+  } catch (err) {
+    db.exec('ROLLBACK');
+    throw err;
+  }
+
+  console.log('已写入 seed 数据：5 条志愿者排班示例');
+}
+
 export function seedIfEmpty() {
   seedFeedingRecords();
   seedHealthFollowups();
   seedCatSightings();
   seedAdoptionIntentions();
+  seedVolunteerSchedules();
 }

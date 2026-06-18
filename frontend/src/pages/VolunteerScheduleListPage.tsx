@@ -16,7 +16,7 @@ import {
   Textarea,
   Title,
 } from '@mantine/core';
-import { DateInput } from '@mantine/dates';
+import { DatePicker, DateInput } from '@mantine/dates';
 import { useDisclosure } from '@mantine/hooks';
 import dayjs from 'dayjs';
 import { useVolunteerScheduleStore } from '../store';
@@ -37,13 +37,13 @@ export function VolunteerScheduleListPage() {
     useVolunteerScheduleStore();
   const [opened, { open, close }] = useDisclosure(false);
   const [editingRecord, setEditingRecord] = useState<VolunteerSchedule | null>(null);
-  const [filterDate, setFilterDate] = useState<Date | null>(null);
+  const [filterDate, setFilterDate] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    fetchRecords(filterDate ? dayjs(filterDate).format('YYYY-MM-DD') : undefined);
-  }, [fetchRecords, filterDate]);
+    fetchRecords();
+  }, [fetchRecords]);
 
   const groupedRecords = useMemo(() => {
     const groups: Record<string, VolunteerSchedule[]> = {};
@@ -56,9 +56,74 @@ export function VolunteerScheduleListPage() {
     return groups;
   }, [records]);
 
-  const sortedDates = useMemo(() => {
-    return Object.keys(groupedRecords).sort();
+  const dateCountMap = useMemo(() => {
+    const map: Record<string, number> = {};
+    Object.keys(groupedRecords).forEach((date) => {
+      map[date] = groupedRecords[date].length;
+    });
+    return map;
   }, [groupedRecords]);
+
+  const filteredRecords = useMemo(() => {
+    if (!filterDate) return records;
+    return records.filter((r) => r.duty_date === filterDate);
+  }, [records, filterDate]);
+
+  const filteredGrouped = useMemo(() => {
+    if (!filterDate) return groupedRecords;
+    return filterDate in groupedRecords ? { [filterDate]: groupedRecords[filterDate] } : {};
+  }, [groupedRecords, filterDate]);
+
+  const sortedDates = useMemo(() => {
+    return Object.keys(filteredGrouped).sort();
+  }, [filteredGrouped]);
+
+  const renderDay = (date: Date) => {
+    const dateStr = dayjs(date).format('YYYY-MM-DD');
+    const count = dateCountMap[dateStr] || 0;
+    const isSelected = filterDate === dateStr;
+
+    return (
+      <div
+        onClick={() => setFilterDate(isSelected ? null : dateStr)}
+        style={{
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '2px',
+          cursor: 'pointer',
+          borderRadius: '4px',
+          backgroundColor: isSelected ? 'rgba(255, 140, 0, 0.1)' : 'transparent',
+        }}
+      >
+        <span
+          style={{
+            fontSize: '14px',
+            fontWeight: isSelected ? 700 : 400,
+            color: isSelected ? '#ff8c00' : 'inherit',
+          }}
+        >
+          {date.getDate()}
+        </span>
+        {count > 0 && (
+          <span
+            style={{
+              fontSize: '10px',
+              padding: '0 4px',
+              backgroundColor: '#ff8c00',
+              color: 'white',
+              borderRadius: '10px',
+              lineHeight: '16px',
+            }}
+          >
+            {count}人
+          </span>
+        )}
+      </div>
+    );
+  };
 
   const openCreateModal = () => {
     setEditingRecord(null);
@@ -136,106 +201,136 @@ export function VolunteerScheduleListPage() {
         </Alert>
       )}
 
-      <Group gap="md">
-        <DateInput
-          label="按日期筛选"
-          value={filterDate}
-          onChange={setFilterDate}
-          valueFormat="YYYY-MM-DD"
-          placeholder="选择日期"
-          clearable
-        />
-        {filterDate && (
-          <Button variant="subtle" size="sm" onClick={handleClearFilter} mt={22}>
-            清除筛选
-          </Button>
-        )}
-      </Group>
+      <SimpleGrid cols={{ base: 1, lg: 2 }} spacing="lg">
+        <Card shadow="sm" padding="lg" radius="md" withBorder>
+          <Group justify="space-between" mb="md">
+            <Text fw={700} size="lg">📅 排班日历</Text>
+            {filterDate && (
+              <Button variant="subtle" size="sm" onClick={handleClearFilter}>
+                清除筛选
+              </Button>
+            )}
+          </Group>
+          <DatePicker
+            value={filterDate ? new Date(filterDate) : null}
+            onChange={(val: Date | null) => setFilterDate(val ? dayjs(val).format('YYYY-MM-DD') : null)}
+            renderDay={renderDay}
+            size="lg"
+            style={{ width: '100%' }}
+          />
+          {filterDate && (
+            <Group mt="md" justify="center">
+              <Badge size="lg" color="orange" variant="light">
+                当前筛选：{filterDate}，共 {filteredRecords.length} 条排班
+              </Badge>
+            </Group>
+          )}
+        </Card>
 
-      {records.length === 0 ? (
-        <Text c="dimmed" ta="center" py="xl">
-          暂无排班记录，点击「新增排班」开始登记
-        </Text>
-      ) : (
-        <Stack gap="lg">
-          {sortedDates.map((date) => (
-            <Card key={date} shadow="sm" padding="lg" radius="md" withBorder>
-              <Group justify="space-between" mb="md">
-                <Text fw={700} size="lg">
-                  📅 {date}
-                  <Badge ml="sm" variant="light">
-                    {groupedRecords[date].length} 人值班
-                  </Badge>
-                </Text>
-              </Group>
-              <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
-                {groupedRecords[date].map((r) => (
-                  <Card key={r.id} padding="sm" radius="sm" withBorder>
-                    <Group justify="space-between" mb="xs">
-                      <Text fw={600} size="md" c="orange">
-                        {r.volunteer_name}
-                      </Text>
-                      <Badge color={r.is_arrived ? 'green' : 'gray'} variant="light">
-                        {r.is_arrived ? '已到岗' : '未到岗'}
+        <Stack gap="md">
+          {filterDate && (
+            <Group gap="md">
+              <DateInput
+                label="快速筛选"
+                value={filterDate ? new Date(filterDate) : null}
+                onChange={(v) => setFilterDate(v ? dayjs(v).format('YYYY-MM-DD') : null)}
+                valueFormat="YYYY-MM-DD"
+                placeholder="选择日期"
+                clearable
+              />
+            </Group>
+          )}
+
+          {records.length === 0 ? (
+            <Text c="dimmed" ta="center" py="xl">
+              暂无排班记录，点击「新增排班」开始登记
+            </Text>
+          ) : sortedDates.length === 0 ? (
+            <Text c="dimmed" ta="center" py="xl">
+              所选日期暂无排班记录
+            </Text>
+          ) : (
+            <Stack gap="lg" style={{ maxHeight: '600px', overflowY: 'auto' }}>
+              {sortedDates.map((date) => (
+                <Card key={date} shadow="sm" padding="md" radius="md" withBorder>
+                  <Group justify="space-between" mb="sm">
+                    <Text fw={700} size="md">
+                      📅 {date}
+                      <Badge ml="sm" variant="light">
+                        {filteredGrouped[date].length} 人值班
                       </Badge>
-                    </Group>
-                    <Stack gap={4}>
-                      <Text size="sm">
-                        <Text span c="dimmed">
-                          区域：
-                        </Text>
-                        {r.area}
-                      </Text>
-                      <Text size="sm">
-                        <Text span c="dimmed">
-                          电话：
-                        </Text>
-                        {r.phone}
-                      </Text>
-                      {r.remark && (
-                        <Text size="sm" lineClamp={2}>
-                          <Text span c="dimmed">
-                            备注：
+                    </Text>
+                  </Group>
+                  <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm">
+                    {filteredGrouped[date].map((r) => (
+                      <Card key={r.id} padding="sm" radius="sm" withBorder>
+                        <Group justify="space-between" mb="xs">
+                          <Text fw={600} size="sm" c="orange">
+                            {r.volunteer_name}
                           </Text>
-                          {r.remark}
-                        </Text>
-                      )}
-                    </Stack>
-                    <Group mt="sm" justify="space-between">
-                      <Group gap={4}>
-                        <Checkbox
-                          size="sm"
-                          label="已到岗"
-                          checked={!!r.is_arrived}
-                          onChange={() => handleToggleArrived(r)}
-                        />
-                      </Group>
-                      <Group gap={4}>
-                        <ActionIcon
-                          color="orange"
-                          variant="subtle"
-                          onClick={() => openEditModal(r)}
-                          aria-label="编辑"
-                        >
-                          ✏️
-                        </ActionIcon>
-                        <ActionIcon
-                          color="red"
-                          variant="subtle"
-                          onClick={() => handleDelete(r.id)}
-                          aria-label="删除"
-                        >
-                          ✕
-                        </ActionIcon>
-                      </Group>
-                    </Group>
-                  </Card>
-                ))}
-              </SimpleGrid>
-            </Card>
-          ))}
+                          <Badge color={r.is_arrived ? 'green' : 'gray'} variant="light" size="sm">
+                            {r.is_arrived ? '已到岗' : '未到岗'}
+                          </Badge>
+                        </Group>
+                        <Stack gap={2}>
+                          <Text size="xs">
+                            <Text span c="dimmed">
+                              区域：
+                            </Text>
+                            {r.area}
+                          </Text>
+                          <Text size="xs">
+                            <Text span c="dimmed">
+                              电话：
+                            </Text>
+                            {r.phone}
+                          </Text>
+                          <Text size="xs">
+                            <Text span c="dimmed">
+                              备注：
+                            </Text>
+                            {r.remark || '无'}
+                          </Text>
+                        </Stack>
+                        <Group mt="xs" justify="space-between">
+                          <Group gap={4}>
+                            <Checkbox
+                              size="xs"
+                              label="已到岗"
+                              checked={!!r.is_arrived}
+                              onChange={() => handleToggleArrived(r)}
+                            />
+                          </Group>
+                          <Group gap={4}>
+                            <ActionIcon
+                              color="orange"
+                              variant="subtle"
+                              size="sm"
+                              onClick={() => openEditModal(r)}
+                              aria-label="编辑"
+                            >
+                              ✏️
+                            </ActionIcon>
+                            <ActionIcon
+                              color="red"
+                              variant="subtle"
+                              size="sm"
+                              onClick={() => handleDelete(r.id)}
+                              aria-label="删除"
+                            >
+                              ✕
+                            </ActionIcon>
+                          </Group>
+                        </Group>
+                      </Card>
+                    ))}
+                  </SimpleGrid>
+                </Card>
+              ))}
+            </Stack>
+          )}
         </Stack>
-      )}
+      </SimpleGrid>
 
       <Modal opened={opened} onClose={close} title={editingRecord ? '编辑排班' : '新增排班'} centered>
         <Stack>

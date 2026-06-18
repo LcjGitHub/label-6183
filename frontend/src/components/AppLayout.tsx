@@ -26,7 +26,7 @@ export function AppLayout() {
           <Group h={60} justify="space-between">
             <Title order={3}>🐱 社区流浪猫管理系统</Title>
             <Text size="sm" c="dimmed">
-              记录每一次爱心投喂、健康随访与目击标注
+              记录每一次爱心投喂、健康随访、目击标注与志愿者排班
             </Text>
           </Group>
           <Tabs value={activeTab} onChange={handleTabChange}>
