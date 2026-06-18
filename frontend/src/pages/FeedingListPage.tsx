@@ -23,7 +23,7 @@ import { useFeedingStore } from '../store';
 
 /** 投喂记录列表页 */
 export function FeedingListPage() {
-  const { records, loading, error, fetchRecords, createRecord, deleteRecord, clearError } =
+  const { records, listLoading, error, fetchRecords, createRecord, deleteRecord, clearError } =
     useFeedingStore();
   const [opened, { open, close }] = useDisclosure(false);
   const [form, setForm] = useState({
@@ -68,7 +68,7 @@ export function FeedingListPage() {
     await deleteRecord(id);
   };
 
-  if (loading && records.length === 0) {
+  if (listLoading && records.length === 0) {
     return (
       <Group justify="center" py="xl">
         <Loader />

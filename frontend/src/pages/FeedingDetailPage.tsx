@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
-  ActionIcon,
   Alert,
   Anchor,
   Button,
@@ -23,9 +22,17 @@ import { useFeedingStore } from '../store';
 /** 投喂记录详情页 */
 export function FeedingDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const recordId = Number(id);
-  const { currentRecord, loading, error, fetchRecord, updateRecord, deleteRecord, clearError } =
-    useFeedingStore();
+  const {
+    currentRecord,
+    detailLoading,
+    error,
+    fetchRecord,
+    updateRecord,
+    deleteRecord,
+    clearError,
+  } = useFeedingStore();
 
   const [editOpened, { open: openEdit, close: closeEdit }] = useDisclosure(false);
   const [form, setForm] = useState({
@@ -72,10 +79,10 @@ export function FeedingDetailPage() {
   const handleDelete = async () => {
     if (!window.confirm('确定删除这条投喂记录？')) return;
     await deleteRecord(recordId);
-    window.location.href = '/';
+    navigate('/');
   };
 
-  if (loading && !currentRecord) {
+  if (detailLoading) {
     return (
       <Group justify="center" py="xl">
         <Loader />

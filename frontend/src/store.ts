@@ -5,7 +5,8 @@ import * as api from './api';
 interface FeedingStore {
   records: FeedingRecord[];
   currentRecord: FeedingRecord | null;
-  loading: boolean;
+  listLoading: boolean;
+  detailLoading: boolean;
   error: string | null;
   fetchRecords: () => Promise<void>;
   fetchRecord: (id: number) => Promise<void>;
@@ -21,26 +22,27 @@ interface FeedingStore {
 export const useFeedingStore = create<FeedingStore>((set, get) => ({
   records: [],
   currentRecord: null,
-  loading: false,
+  listLoading: false,
+  detailLoading: false,
   error: null,
 
   fetchRecords: async () => {
-    set({ loading: true, error: null });
+    set({ listLoading: true, error: null });
     try {
       const records = await api.fetchRecords();
-      set({ records, loading: false });
+      set({ records, listLoading: false });
     } catch {
-      set({ loading: false, error: '加载投喂记录列表失败' });
+      set({ listLoading: false, error: '加载投喂记录列表失败' });
     }
   },
 
   fetchRecord: async (id) => {
-    set({ loading: true, error: null });
+    set({ detailLoading: true, error: null, currentRecord: null });
     try {
       const currentRecord = await api.fetchRecord(id);
-      set({ currentRecord, loading: false });
+      set({ currentRecord, detailLoading: false });
     } catch {
-      set({ loading: false, error: '加载投喂记录详情失败' });
+      set({ detailLoading: false, error: '加载投喂记录详情失败' });
     }
   },
 
