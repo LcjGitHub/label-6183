@@ -52,9 +52,12 @@ export function initSchema() {
       longitude REAL NOT NULL,
       sighting_time TEXT NOT NULL,
       location_description TEXT NOT NULL,
+      photo_url TEXT,
       created_at TEXT DEFAULT (datetime('now'))
     );
   `);
+
+  db.exec(`ALTER TABLE cat_sightings ADD COLUMN IF NOT EXISTS photo_url TEXT`);
 
   db.exec(`
     CREATE TABLE IF NOT EXISTS adoption_intentions (

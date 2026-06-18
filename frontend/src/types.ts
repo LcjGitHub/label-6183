@@ -29,6 +29,7 @@ export interface CatSighting {
   longitude: number;
   sighting_time: string;
   location_description: string;
+  photo_url: string | null;
   created_at?: string;
 }
 

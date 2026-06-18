@@ -33,12 +33,14 @@ export function CatSightingListPage() {
     longitude: string;
     sighting_time: Date;
     location_description: string;
+    photo_url: string;
   }>({
     cat_nickname: '',
     latitude: '',
     longitude: '',
     sighting_time: new Date(),
     location_description: '',
+    photo_url: '',
   });
   const [submitting, setSubmitting] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -63,6 +65,7 @@ export function CatSightingListPage() {
       longitude: '',
       sighting_time: new Date(),
       location_description: '',
+      photo_url: '',
     });
     setValidationError(null);
   };
@@ -91,6 +94,7 @@ export function CatSightingListPage() {
         longitude: lng,
         sighting_time: dayjs(form.sighting_time).format('YYYY-MM-DD HH:mm:ss'),
         location_description: form.location_description,
+        photo_url: form.photo_url || null,
       });
       resetForm();
       close();
@@ -181,30 +185,71 @@ export function CatSightingListPage() {
         <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
           {records.map((r) => (
             <Card key={r.id} shadow="sm" padding="lg" radius="md" withBorder>
-              <Group justify="space-between" mb="xs">
-                <Text fw={700} size="lg" component={Link} to={`/sightings/${r.id}`} c="orange">
-                  {r.cat_nickname}
-                </Text>
-                <Badge variant="light">📍 {r.latitude.toFixed(4)}, {r.longitude.toFixed(4)}</Badge>
-              </Group>
-              <Stack gap={4}>
-                <Text size="sm">
-                  <Text span c="dimmed">
-                    发现时间：
-                  </Text>
-                  {r.sighting_time}
-                </Text>
-                <Text size="sm" lineClamp={3}>
-                  <Text span c="dimmed">
-                    地点描述：
-                  </Text>
-                  {r.location_description}
-                </Text>
-              </Stack>
-              <Group mt="md">
-                <Button component={Link} to={`/sightings/${r.id}`} variant="light" size="xs">
-                  查看详情
-                </Button>
+              <Group align="flex-start" gap="md">
+                <div style={{ flexShrink: 0, width: 80, height: 80 }}>
+                  {r.photo_url ? (
+                    <img
+                      src={r.photo_url}
+                      alt={r.cat_nickname}
+                      style={{
+                        width: 80,
+                        height: 80,
+                        objectFit: 'cover',
+                        borderRadius: 8,
+                      }}
+                      onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).style.display = 'none';
+                        const parent = (e.currentTarget as HTMLImageElement).parentElement;
+                        if (parent) {
+                          parent.innerHTML = `<div style="width:80px;height:80px;border-radius:8px;background:#f0f0f0;display:flex;align-items:center;justify-content:center;color:#999;font-size:24px;">📷</div>`;
+                        }
+                      }}
+                    />
+                  ) : (
+                    <div
+                      style={{
+                        width: 80,
+                        height: 80,
+                        borderRadius: 8,
+                        background: '#f0f0f0',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: '#999',
+                        fontSize: 24,
+                      }}
+                    >
+                      📷
+                    </div>
+                  )}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <Group justify="space-between" mb="xs">
+                    <Text fw={700} size="lg" component={Link} to={`/sightings/${r.id}`} c="orange">
+                      {r.cat_nickname}
+                    </Text>
+                    <Badge variant="light">📍 {r.latitude.toFixed(4)}, {r.longitude.toFixed(4)}</Badge>
+                  </Group>
+                  <Stack gap={4}>
+                    <Text size="sm">
+                      <Text span c="dimmed">
+                        发现时间：
+                      </Text>
+                      {r.sighting_time}
+                    </Text>
+                    <Text size="sm" lineClamp={3}>
+                      <Text span c="dimmed">
+                        地点描述：
+                      </Text>
+                      {r.location_description}
+                    </Text>
+                  </Stack>
+                  <Group mt="md">
+                    <Button component={Link} to={`/sightings/${r.id}`} variant="light" size="xs">
+                      查看详情
+                    </Button>
+                  </Group>
+                </div>
               </Group>
             </Card>
           ))}
@@ -257,6 +302,12 @@ export function CatSightingListPage() {
             onChange={(e) => setForm({ ...form, location_description: e.target.value })}
             minRows={2}
             required
+          />
+          <TextInput
+            label="照片地址（选填）"
+            placeholder="如：https://example.com/cat.jpg"
+            value={form.photo_url}
+            onChange={(e) => setForm({ ...form, photo_url: e.target.value })}
           />
           <Button
             onClick={handleCreate}

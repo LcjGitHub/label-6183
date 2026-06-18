@@ -71,12 +71,14 @@ export function CatSightingDetailPage() {
     longitude: string;
     sighting_time: Date;
     location_description: string;
+    photo_url: string;
   }>({
     cat_nickname: '',
     latitude: '',
     longitude: '',
     sighting_time: new Date(),
     location_description: '',
+    photo_url: '',
   });
   const [submitting, setSubmitting] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -93,6 +95,7 @@ export function CatSightingDetailPage() {
         longitude: String(currentRecord.longitude),
         sighting_time: dayjs(currentRecord.sighting_time).toDate(),
         location_description: currentRecord.location_description,
+        photo_url: currentRecord.photo_url ?? '',
       });
     }
   }, [currentRecord]);
@@ -121,6 +124,7 @@ export function CatSightingDetailPage() {
         longitude: lng,
         sighting_time: dayjs(form.sighting_time).format('YYYY-MM-DD HH:mm:ss'),
         location_description: form.location_description,
+        photo_url: form.photo_url || null,
       });
       closeEdit();
     } finally {
@@ -214,6 +218,49 @@ export function CatSightingDetailPage() {
             </Text>
             <Text style={{ whiteSpace: 'pre-wrap' }}>{currentRecord.location_description}</Text>
           </Stack>
+          <Stack gap={4} mt="md">
+            <Text fw={500} c="dimmed">
+              照片
+            </Text>
+            {currentRecord.photo_url ? (
+              <div style={{ borderRadius: 8, overflow: 'hidden', border: '1px solid #dee2e6' }}>
+                <img
+                  src={currentRecord.photo_url}
+                  alt={currentRecord.cat_nickname}
+                  style={{
+                    width: '100%',
+                    maxHeight: 400,
+                    objectFit: 'cover',
+                    display: 'block',
+                  }}
+                  onError={(e) => {
+                    const parent = (e.currentTarget as HTMLImageElement).parentElement;
+                    if (parent) {
+                      parent.innerHTML = `
+                        <div style="padding: 40px; text-align: center; background: #f8f9fa;">
+                          <div style="font-size: 48px; margin-bottom: 8px;">📷</div>
+                          <div style="color: #999;">图片加载失败，请检查照片地址是否正确</div>
+                        </div>
+                      `;
+                    }
+                  }}
+                />
+              </div>
+            ) : (
+              <div
+                style={{
+                  padding: 40,
+                  textAlign: 'center',
+                  background: '#f8f9fa',
+                  borderRadius: 8,
+                  border: '1px dashed #dee2e6',
+                }}
+              >
+                <div style={{ fontSize: 48, marginBottom: 8 }}>📷</div>
+                <div style={{ color: '#999' }}>暂无照片，点击「编辑」添加猫咪照片</div>
+              </div>
+            )}
+          </Stack>
           {currentRecord.created_at && (
             <Text size="xs" c="dimmed" mt="md">
               创建时间：{currentRecord.created_at}
@@ -264,6 +311,12 @@ export function CatSightingDetailPage() {
             onChange={(e) => setForm({ ...form, location_description: e.target.value })}
             minRows={2}
             required
+          />
+          <TextInput
+            label="照片地址（选填）"
+            placeholder="如：https://example.com/cat.jpg"
+            value={form.photo_url}
+            onChange={(e) => setForm({ ...form, photo_url: e.target.value })}
           />
           <Button
             onClick={handleUpdate}

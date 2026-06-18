@@ -32,7 +32,7 @@ router.get('/:id', (req, res) => {
 });
 
 router.post('/', (req, res) => {
-  const { cat_nickname, latitude, longitude, sighting_time, location_description } = req.body;
+  const { cat_nickname, latitude, longitude, sighting_time, location_description, photo_url } = req.body;
   if (!cat_nickname || latitude === undefined || longitude === undefined || !sighting_time || !location_description) {
     return res
       .status(400)
@@ -45,9 +45,9 @@ router.post('/', (req, res) => {
   }
   const result = db
     .prepare(
-      'INSERT INTO cat_sightings (cat_nickname, latitude, longitude, sighting_time, location_description) VALUES (?, ?, ?, ?, ?)'
+      'INSERT INTO cat_sightings (cat_nickname, latitude, longitude, sighting_time, location_description, photo_url) VALUES (?, ?, ?, ?, ?, ?)'
     )
-    .run(cat_nickname, lat, lng, sighting_time, location_description);
+    .run(cat_nickname, lat, lng, sighting_time, location_description, photo_url ?? null);
   const record = db
     .prepare('SELECT * FROM cat_sightings WHERE id = ?')
     .get(result.lastInsertRowid);
@@ -59,7 +59,7 @@ router.put('/:id', (req, res) => {
   if (!existing) {
     return res.status(404).json({ error: '目击标注不存在' });
   }
-  const { cat_nickname, latitude, longitude, sighting_time, location_description } = req.body;
+  const { cat_nickname, latitude, longitude, sighting_time, location_description, photo_url } = req.body;
   const lat = latitude !== undefined ? Number(latitude) : existing.latitude;
   const lng = longitude !== undefined ? Number(longitude) : existing.longitude;
   if (Number.isNaN(lat) || Number.isNaN(lng)) {
@@ -67,7 +67,7 @@ router.put('/:id', (req, res) => {
   }
   db.prepare(
     `UPDATE cat_sightings
-     SET cat_nickname = ?, latitude = ?, longitude = ?, sighting_time = ?, location_description = ?
+     SET cat_nickname = ?, latitude = ?, longitude = ?, sighting_time = ?, location_description = ?, photo_url = ?
      WHERE id = ?`
   ).run(
     cat_nickname ?? existing.cat_nickname,
@@ -75,6 +75,7 @@ router.put('/:id', (req, res) => {
     lng,
     sighting_time ?? existing.sighting_time,
     location_description ?? existing.location_description,
+    photo_url !== undefined ? photo_url : existing.photo_url,
     req.params.id
   );
   const record = db.prepare('SELECT * FROM cat_sightings WHERE id = ?').get(req.params.id);
