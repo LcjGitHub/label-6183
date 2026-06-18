@@ -68,9 +68,11 @@ export function CatSightingDetailPage() {
   const {
     records: feedingRecords,
     listLoading: feedingListLoading,
+    error: feedingError,
     fetchRecords: fetchFeedingRecords,
     createRecord: createFeedingRecord,
     deleteRecord: deleteFeedingRecord,
+    clearError: clearFeedingError,
   } = useCatFeedingStore();
 
   const [editOpened, { open: openEdit, close: closeEdit }] = useDisclosure(false);
@@ -100,16 +102,17 @@ export function CatSightingDetailPage() {
     remark: '',
   });
   const [feedingSubmitting, setFeedingSubmitting] = useState(false);
+  const [feedingCreateError, setFeedingCreateError] = useState<string | null>(null);
 
   useEffect(() => {
     if (recordId) fetchRecord(recordId);
   }, [recordId, fetchRecord]);
 
   useEffect(() => {
-    if (currentRecord) {
-      fetchFeedingRecords(currentRecord.cat_nickname);
+    if (recordId) {
+      fetchFeedingRecords(recordId);
     }
-  }, [currentRecord, fetchFeedingRecords]);
+  }, [recordId, fetchFeedingRecords]);
 
   useEffect(() => {
     if (currentRecord) {
@@ -163,11 +166,12 @@ export function CatSightingDetailPage() {
   };
 
   const handleCreateFeeding = async () => {
-    if (!currentRecord || !feedingForm.food_type || !feedingForm.quantity) return;
+    if (!feedingForm.food_type || !feedingForm.quantity) return;
     setFeedingSubmitting(true);
+    setFeedingCreateError(null);
     try {
       await createFeedingRecord({
-        cat_nickname: currentRecord.cat_nickname,
+        cat_sighting_id: recordId,
         feeding_date: dayjs(feedingForm.feeding_date).format('YYYY-MM-DD'),
         food_type: feedingForm.food_type,
         quantity: feedingForm.quantity,
@@ -180,6 +184,13 @@ export function CatSightingDetailPage() {
         remark: '',
       });
       closeFeeding();
+    } catch (err) {
+      if (err && typeof err === 'object' && 'response' in err) {
+        const response = (err as { response?: { data?: { error?: string } } }).response;
+        setFeedingCreateError(response?.data?.error || '新增投喂记录失败，请稍后重试');
+      } else {
+        setFeedingCreateError('新增投喂记录失败，请稍后重试');
+      }
     } finally {
       setFeedingSubmitting(false);
     }
@@ -333,6 +344,11 @@ export function CatSightingDetailPage() {
             + 新增投喂
           </Button>
         </Group>
+        {feedingError && (
+          <Alert color="red" withCloseButton onClose={clearFeedingError} mb="sm">
+            {feedingError}
+          </Alert>
+        )}
         {feedingListLoading ? (
           <Group justify="center" py="md">
             <Loader size="sm" />
@@ -370,11 +386,9 @@ export function CatSightingDetailPage() {
                   </Text>
                   <Text size="sm">{r.quantity}</Text>
                 </Group>
-                {r.remark && (
-                  <Text size="sm" c="dimmed" mt={4} lineClamp={2}>
-                    备注：{r.remark}
-                  </Text>
-                )}
+                <Text size="sm" c="dimmed" mt={4} lineClamp={2}>
+                  备注：{r.remark || '无'}
+                </Text>
               </Card>
             ))}
           </Stack>
@@ -441,6 +455,11 @@ export function CatSightingDetailPage() {
 
       <Modal opened={feedingOpened} onClose={closeFeeding} title="新增投喂记录" centered>
         <Stack>
+          {feedingCreateError && (
+            <Alert color="red" withCloseButton onClose={() => setFeedingCreateError(null)}>
+              {feedingCreateError}
+            </Alert>
+          )}
           <DateInput
             label="投喂日期"
             value={feedingForm.feeding_date}

@@ -79,7 +79,7 @@ interface CatFeedingStore {
   records: CatFeedingRecord[];
   listLoading: boolean;
   error: string | null;
-  fetchRecords: (catNickname?: string) => Promise<void>;
+  fetchRecords: (catSightingId?: number) => Promise<void>;
   createRecord: (payload: Omit<CatFeedingRecord, 'id' | 'created_at'>) => Promise<CatFeedingRecord>;
   deleteRecord: (id: number) => Promise<void>;
   clearError: () => void;
@@ -90,10 +90,10 @@ export const useCatFeedingStore = create<CatFeedingStore>((set, get) => ({
   listLoading: false,
   error: null,
 
-  fetchRecords: async (catNickname) => {
+  fetchRecords: async (catSightingId) => {
     set({ listLoading: true, error: null });
     try {
-      const records = await api.fetchCatFeedingRecords(catNickname);
+      const records = await api.fetchCatFeedingRecords(catSightingId);
       set({ records, listLoading: false });
     } catch {
       set({ listLoading: false, error: '加载猫咪投喂记录失败' });

@@ -40,8 +40,8 @@ export async function deleteRecord(id: number): Promise<void> {
 }
 
 /** 获取猫咪投喂记录列表 */
-export async function fetchCatFeedingRecords(catNickname?: string): Promise<CatFeedingRecord[]> {
-  const params = catNickname ? { cat_nickname: catNickname } : {};
+export async function fetchCatFeedingRecords(catSightingId?: number): Promise<CatFeedingRecord[]> {
+  const params = catSightingId ? { cat_sighting_id: String(catSightingId) } : {};
   const { data } = await api.get<CatFeedingRecord[]>('/cat-feeding', { params });
   return data;
 }

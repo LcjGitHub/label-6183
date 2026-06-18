@@ -4,14 +4,14 @@ import db from '../db.js';
 const router = Router();
 
 router.get('/', (req, res) => {
-  const { cat_nickname } = req.query;
+  const { cat_sighting_id } = req.query;
   let records;
-  if (cat_nickname) {
+  if (cat_sighting_id) {
     records = db
       .prepare(
-        'SELECT * FROM cat_feeding_records WHERE cat_nickname = ? ORDER BY feeding_date DESC, id DESC'
+        'SELECT * FROM cat_feeding_records WHERE cat_sighting_id = ? ORDER BY feeding_date DESC, id DESC'
       )
-      .all(cat_nickname);
+      .all(cat_sighting_id);
   } else {
     records = db
       .prepare('SELECT * FROM cat_feeding_records ORDER BY feeding_date DESC, id DESC')
@@ -29,17 +29,21 @@ router.get('/:id', (req, res) => {
 });
 
 router.post('/', (req, res) => {
-  const { cat_nickname, feeding_date, food_type, quantity, remark } = req.body;
-  if (!cat_nickname || !feeding_date || !food_type || !quantity) {
+  const { cat_sighting_id, feeding_date, food_type, quantity, remark } = req.body;
+  if (!cat_sighting_id || !feeding_date || !food_type || !quantity) {
     return res
       .status(400)
-      .json({ error: '猫咪昵称、投喂日期、食物类型、投喂量均为必填' });
+      .json({ error: '猫咪编号、投喂日期、食物类型、投喂量均为必填' });
+  }
+  const sighting = db.prepare('SELECT * FROM cat_sightings WHERE id = ?').get(cat_sighting_id);
+  if (!sighting) {
+    return res.status(404).json({ error: '关联的猫咪不存在' });
   }
   const result = db
     .prepare(
-      'INSERT INTO cat_feeding_records (cat_nickname, feeding_date, food_type, quantity, remark) VALUES (?, ?, ?, ?, ?)'
+      'INSERT INTO cat_feeding_records (cat_sighting_id, feeding_date, food_type, quantity, remark) VALUES (?, ?, ?, ?, ?)'
     )
-    .run(cat_nickname, feeding_date, food_type, quantity, remark ?? null);
+    .run(cat_sighting_id, feeding_date, food_type, quantity, remark ?? null);
   const record = db
     .prepare('SELECT * FROM cat_feeding_records WHERE id = ?')
     .get(result.lastInsertRowid);

@@ -57,6 +57,16 @@ npm run dev
 - **新增 / 编辑弹窗**：表单字段包含投喂日期、投喂地点、猫粮种类、投喂量、天气下拉选择（选填，可选值：晴天 / 阴天 / 雨天 / 雪天，可清空）、备注
 - **基础 CRUD**：投喂记录的增删改查
 
+### 🐱 猫咪投喂记录（子功能）
+
+- **位置**：猫咪详情页档案卡片下方
+- **功能说明**：关联具体猫咪的投喂记录，用于跟踪单只猫咪的投喂历史
+- **记录列表**：按日期倒序展示该猫咪的所有投喂记录，显示投喂日期、食物类型、投喂量、备注（备注为空时显示「无」）；每条记录支持删除操作
+- **新增投喂**：弹窗表单录入，字段包含投喂日期、食物类型、投喂量、备注（选填）；新增失败时在弹窗内显示错误提示
+- **加载状态**：切换不同猫咪详情时，投喂列表始终显示加载动画，避免空白闪烁
+- **错误提示**：投喂列表加载失败时在列表顶部显示红色错误提示框，支持关闭
+- **基础 CRUD**：按猫咪查询、新增、删除投喂记录
+
 ### 🏥 健康随访
 
 - **健康随访记录列表**：猫咪昵称、随访日期、体重、精神状态等预览
@@ -100,6 +110,15 @@ npm run dev
 | POST | `/api/feeding` | 新建投喂记录 |
 | PUT | `/api/feeding/:id` | 更新投喂记录 |
 | DELETE | `/api/feeding/:id` | 删除投喂记录 |
+
+### 猫咪投喂记录 API
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/cat-feeding` | 猫咪投喂记录列表（支持 `?cat_sighting_id=1` 按猫咪编号筛选，按日期倒序） |
+| GET | `/api/cat-feeding/:id` | 单条猫咪投喂记录详情 |
+| POST | `/api/cat-feeding` | 新建猫咪投喂记录（通过 `cat_sighting_id` 关联猫咪） |
+| DELETE | `/api/cat-feeding/:id` | 删除猫咪投喂记录 |
 
 ### 健康随访记录 API
 
@@ -155,6 +174,16 @@ npm run dev
 | weather | 天气（可选值：晴天 / 阴天 / 雨天 / 雪天），列表与详情页显示对应颜色标签，详情页时间线条目标题旁同样展示 | 否 |
 | remark | 备注 | 否 |
 
+### 猫咪投喂记录
+
+| 字段 | 说明 | 必填 |
+|------|------|------|
+| cat_sighting_id | 猫咪编号（关联 `cat_sightings.id`，外键约束，删除猫咪时级联删除投喂记录） | 是 |
+| feeding_date | 投喂日期（YYYY-MM-DD） | 是 |
+| food_type | 食物类型 | 是 |
+| quantity | 投喂量 | 是 |
+| remark | 备注（为空时在列表中显示「无」） | 否 |
+
 ### 健康随访记录
 
 | 字段 | 说明 | 必填 |
@@ -196,6 +225,7 @@ npm run dev
 │   └── src/
 │       ├── routes/
 │       │   ├── adoption.js           # 领养意向路由
+│       │   ├── catFeeding.js        # 猫咪投喂记录路由
 │       │   ├── catSighting.js       # 目击标注路由
 │       │   ├── feeding.js           # 投喂记录路由
 │       │   ├── healthFollowup.js    # 健康随访路由
@@ -211,7 +241,7 @@ npm run dev
 │       │   ├── AdoptionListPage.tsx      # 领养意向列表页
 │       │   ├── AdoptionDetailPage.tsx    # 领养意向详情页
 │       │   ├── CatSightingListPage.tsx    # 目击地图列表页
-│       │   ├── CatSightingDetailPage.tsx  # 目击地图详情页
+│       │   ├── CatSightingDetailPage.tsx  # 目击地图详情页（含猫咪投喂记录子功能）
 │       │   ├── FeedingListPage.tsx
 │       │   ├── FeedingDetailPage.tsx
 │       │   ├── HealthFollowupListPage.tsx

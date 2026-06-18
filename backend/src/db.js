@@ -100,14 +100,34 @@ export function initSchema() {
   db.exec(`
     CREATE TABLE IF NOT EXISTS cat_feeding_records (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      cat_nickname TEXT NOT NULL,
+      cat_sighting_id INTEGER NOT NULL,
       feeding_date TEXT NOT NULL,
       food_type TEXT NOT NULL,
       quantity TEXT NOT NULL,
       remark TEXT,
-      created_at TEXT DEFAULT (datetime('now'))
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (cat_sighting_id) REFERENCES cat_sightings(id) ON DELETE CASCADE
     );
   `);
+
+  const catSightingIdColumn = db
+    .prepare("SELECT name FROM pragma_table_info('cat_feeding_records') WHERE name = 'cat_sighting_id'")
+    .get();
+  if (!catSightingIdColumn) {
+    db.exec(`ALTER TABLE cat_feeding_records RENAME TO cat_feeding_records_old`);
+    db.exec(`
+      CREATE TABLE cat_feeding_records (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        cat_sighting_id INTEGER NOT NULL,
+        feeding_date TEXT NOT NULL,
+        food_type TEXT NOT NULL,
+        quantity TEXT NOT NULL,
+        remark TEXT,
+        created_at TEXT DEFAULT (datetime('now')),
+        FOREIGN KEY (cat_sighting_id) REFERENCES cat_sightings(id) ON DELETE CASCADE
+      );
+    `);
+  }
 }
 
 export default db;

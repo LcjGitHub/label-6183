@@ -13,7 +13,7 @@ export interface FeedingRecord {
 /** 猫咪投喂记录 */
 export interface CatFeedingRecord {
   id: number;
-  cat_nickname: string;
+  cat_sighting_id: number;
   feeding_date: string;
   food_type: string;
   quantity: string;
